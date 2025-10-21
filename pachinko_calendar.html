@@ -133,18 +133,22 @@
       padding: 15px;
       text-align: center;
       font-weight: 600;
+      font-size: 14px; /* PCでも少し小さく */
     }
 
     /* 日付セルのスタイル */
     .calendar-day {
       background: white;
-      padding: 10px;
-      min-height: 120px; /* ある程度の高さを確保 */
+      padding: 8px; /* パディングを少し減らす */
+      /* min-height: 120px; */ /* 高さの固定を解除 */
       position: relative;
       cursor: pointer;
       transition: all 0.3s;
       display: flex; /* Flexboxで内容を縦に配置 */
       flex-direction: column;
+      align-items: flex-start; /* 左寄せ */
+      font-size: 13px; /* 基本フォントサイズを少し小さく */
+      min-width: 0; /* flexアイテムの最小幅を0にする */
     }
 
     /* 日付セルホバー時のスタイル */
@@ -164,23 +168,35 @@
       font-weight: 600;
       margin-bottom: 5px;
       color: #333;
+      flex-shrink: 0; /* 日付番号は縮まない */
     }
 
     /* その日のイベントリストのスタイル */
     .day-events {
-      font-size: 12px;
+      font-size: 11px; /* イベントリストのフォントサイズを小さく */
       flex-grow: 1; /* 残りの高さを埋める */
       overflow: hidden; /* はみ出した内容を隠す */
+      width: 100%; /* 親要素の幅いっぱいに広げる */
+      /* display: flex;
+      flex-direction: column; */ /* イベントを縦に並べる */
+      padding-bottom: 5px; /* 合計収支との間に少しスペース */
     }
 
     /* 各イベントアイテムのスタイル */
     .event-item {
-      padding: 3px 6px;
-      margin: 2px 0;
+      padding: 2px 4px; /* パディングを減らす */
+      margin: 1px 0; /* マージンを減らす */
       border-radius: 4px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis; /* 長すぎるテキストを省略 */
+      max-width: 100%; /* 親要素の幅に収める */
+      box-sizing: border-box; /* パディング、ボーダーを幅に含める */
+    }
+    
+    /* イベントアイテムのアイコンとテキストの間隔を詰める */
+    .event-item::before {
+        margin-right: 2px;
     }
 
     /* プラス収支のイベントアイテムのスタイル */
@@ -200,8 +216,11 @@
       margin-top: auto; /* 日付セルの下部に配置 */
       padding-top: 5px;
       font-weight: 700;
-      font-size: 14px;
+      font-size: 13px; /* 合計収支のフォントサイズを小さく */
       text-align: right;
+      width: 100%; /* 親要素の幅いっぱいに広げる */
+      flex-shrink: 0; /* 縮まない */
+      padding-bottom: 2px; /* セル下部とのスペース */
     }
 
     /* 月間サマリーボックスのコンテナスタイル */
@@ -257,25 +276,29 @@
         }
         /* 各日付セルのサイズ、パディング、フォントサイズを調整 */
         .calendar-day {
-            min-height: 80px; /* 高さを抑える */
-            padding: 5px; /* 内側の余白を減らす */
-            font-size: 11px; /* 全体的なフォントサイズを小さく */
+            /* min-height: 80px; */ /* 高さを抑える */ /* min-heightを解除 */
+            padding: 3px; /* 内側の余白をさらに減らす */
+            font-size: 10px; /* 全体的なフォントサイズを小さく */
         }
         /* 曜日ヘッダーのパディングとフォントサイズも調整 */
         .calendar-day-header {
-            padding: 10px 5px; 
-            font-size: 12px;
+            padding: 8px 3px; 
+            font-size: 11px;
         }
         /* 日付番号を小さく */
         .day-number {
-            font-size: 12px; 
+            font-size: 11px; 
             margin-bottom: 2px;
         }
         /* イベントアイテムのフォントサイズ、パディング、マージンを調整 */
+        .day-events {
+            font-size: 9px; /* さらに小さく */
+        }
         .event-item {
-            padding: 2px 4px;
-            font-size: 9px; 
-            margin: 1px 0; 
+            padding: 1px 2px;
+            font-size: 9px; /* さらに小さく */
+            margin: 0 0 1px 0; /* 上下のマージンを詰める */
+            line-height: 1.2; /* 行の高さを詰める */
         }
         /* 合計収支のフォントサイズとパディングを調整 */
         .day-total {
@@ -413,14 +436,22 @@
       }
 
       // 次月の日付セルを生成 (カレンダーグリッドを常に6週分表示するため)
-      const totalCells = firstDayOfWeek + daysInMonth; // 当月と前月の表示済みセル数
-      const remainingCells = 42 - totalCells; // 6週 (42日) から表示済みセルを引く
-      for (let i = 0; i < remainingCells; i++) {
+      // `grid-template-columns: repeat(7, 1fr);` と `gap: 1px;` でレイアウトしているため、
+      // flex-wrap: wrap; で自動改行するのではなく、グリッドのマス目を埋めるアプローチの方が適切です。
+      // 最大で6週分 (6 * 7 = 42マス) を表示するため、現在の月の日数と先月の余白を引いた残りを次月で埋めます。
+      const totalDisplayCells = firstDayOfWeek + daysInMonth;
+      let cellsToFill = 0;
+      if (totalDisplayCells <= 35) { // 5週分で足りる場合、6週目まで埋める
+          cellsToFill = 35 - totalDisplayCells;
+      } else { // 6週目が必要な場合
+          cellsToFill = 42 - totalDisplayCells;
+      }
+
+      for (let i = 0; i < cellsToFill; i++) {
         const day = i + 1; // 次月の日付は1から開始
         const cell = createDayCell(day, true, false); // isOtherMonth=true
         grid.appendChild(cell);
       }
-
 
       // 月名表示を更新
       document.getElementById("current-month").textContent = 
@@ -462,12 +493,13 @@
           const genreIcon = event.genre === 'pachinko' ? '🎯' : '🎰';
           
           // 機種名を省略して表示 (6文字より長い場合は5文字 + "…")
+          // 省略はせず、セル内で overflow: hidden; text-overflow: ellipsis; に任せる
           const machineName = event.machine;
-          const displayName = machineName.length > 6 ? machineName.substring(0, 5) + '…' : machineName;
+          // const displayName = machineName.length > 6 ? machineName.substring(0, 5) + '…' : machineName;
           
           const eventItem = document.createElement("div");
           eventItem.className = `event-item ${event.diff >= 0 ? 'event-positive' : 'event-negative'}`;
-          eventItem.textContent = `${genreIcon} ${displayName}`;
+          eventItem.textContent = `${genreIcon} ${machineName}`; // 省略せずに表示
           eventsDiv.appendChild(eventItem);
 
           // ツールチップに表示する詳細情報を作成
