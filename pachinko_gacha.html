@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>おすすめ台ガチャ</title>
+  <style>
+    /* 全体的なリセット */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    /* bodyのスタイル: フォント、背景グラデーション、最小高さ、パディング */
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #FF6F61 0%, #FFB6C1 100%); /* 温かいピンク系のグラデーション */
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    /* メインコンテナのスタイル */
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+      display: flex; /* Flexboxでコンテンツを中央寄せ */
+      flex-direction: column;
+      align-items: center;
+      min-height: calc(100vh - 40px); /* ヘッダーとフッターを考慮した最小高さ */
+    }
+
+    /* ヘッダーのスタイル */
+    .header {
+      background: linear-gradient(135deg, #FF6F61 0%, #FFB6C1 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+      width: 100%; /* 幅を100%に */
+      box-sizing: border-box; /* パディングを含めて幅を計算 */
+    }
+
+    /* ヘッダーのタイトル */
+    .header h1 { font-size: 28px; margin-bottom: 10px; }
+
+    /* ナビゲーションリンクコンテナのスタイル */
+    .nav-links {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 15px;
+    }
+
+    /* ナビゲーションリンク個別のスタイル */
+    .nav-link {
+      display: inline-block;
+      padding: 10px 20px;
+      background: rgba(255,255,255,0.2);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+
+    /* ナビゲーションリンクホバー時のスタイル */
+    .nav-link:hover {
+      background: rgba(255,255,255,0.3);
+      transform: translateY(-2px);
+    }
+
+    /* コンテンツエリアのスタイル */
+    .content {
+      padding: 30px;
+      width: 100%; /* 幅を100%に */
+      max-width: 600px; /* コンテンツの最大幅 */
+      flex-grow: 1; /* 残りのスペースを埋める */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* フォームセクションのスタイル */
+    .form-section {
+      background: #f8f9fa;
+      padding: 25px;
+      border-radius: 15px;
+      margin-bottom: 30px;
+      width: 100%;
+    }
+
+    /* フォームセクションのタイトル */
+    .form-section h2 {
+      color: #FF6F61;
+      margin-bottom: 20px;
+      font-size: 20px;
+      text-align: center;
+    }
+
+    /* フォームグループ (ラベルと入力欄のセット) のスタイル */
+    .form-group {
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    /* ラベルのスタイル */
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    /* inputとselect要素の基本スタイル */
+    input, select {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 16px;
+      transition: all 0.3s;
+    }
+
+    /* inputとselect要素フォーカス時のスタイル */
+    input:focus, select:focus {
+      outline: none;
+      border-color: #FF6F61;
+      box-shadow: 0 0 0 3px rgba(255, 111, 97, 0.1);
+    }
+
+    /* ボタンの基本スタイル */
+    .btn {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      background: linear-gradient(135deg, #FF6F61 0%, #FFB6C1 100%);
+      color: white;
+      transition: all 0.3s;
+    }
+
+    /* ボタンホバー時のスタイル */
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(255, 111, 97, 0.4);
+    }
+
+    /* 複数選択リストのスタイル */
+    #machine-selection {
+      width: 100%;
+      min-height: 150px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 16px;
+      padding: 10px;
+      overflow-y: auto;
+      background-color: white;
+    }
+
+    #machine-selection option {
+      padding: 8px 10px;
+      cursor: pointer;
+    }
+
+    #machine-selection option:checked {
+      background: #ffe0e0; /* 選択時の背景色 */
+      color: #333;
+    }
+
+    /* ガチャ結果表示エリア */
+    .gacha-result {
+      background: #fff0f0; /* 薄いピンクの背景 */
+      border: 2px solid #FF6F61;
+      border-radius: 15px;
+      padding: 30px;
+      text-align: center;
+      margin-top: 30px;
+      width: 100%;
+      animation: fadeIn 1s ease-out; /* フェードインアニメーション */
+    }
+
+    .gacha-result h3 {
+      color: #FF6F61;
+      font-size: 24px;
+      margin-bottom: 15px;
+    }
+
+    .gacha-result p {
+      font-size: 18px;
+      color: #555;
+      line-height: 1.6;
+    }
+
+    .gacha-machine-name {
+      font-size: 36px;
+      font-weight: 700;
+      color: #E91E63; /* 濃いピンク */
+      margin: 20px 0;
+      text-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* サジェストボックスのスタイル */
+    .suggest-box {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 2px solid #FF6F61;
+      border-top: none;
+      border-radius: 0 0 10px 10px;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 10;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+
+    .suggest-box div {
+      padding: 12px 15px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .suggest-box div:hover {
+      background: #ffe0e0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎰 おすすめ台ガチャ</h1>
+      <p>今日の運試し！どの台を打つ？</p>
+      <!-- ナビゲーションリンク -->
+      <div class="nav-links">
+        <a href="index.html" class="nav-link">🏠 家計簿ホーム</a>
+        <a href="register.html" class="nav-link">📝 機種登録</a>
+        <a href="pachinko_index.html" class="nav-link">🎰 収支登録</a>
+        <a href="pachinko_calendar.html" class="nav-link">📅 カレンダー</a>
+        <a href="pachinko_graph.html" class="nav-link">📊 グラフ</a>
+      
+    </div>
+    </div>
+
+    <div class="content">
+      <div class="form-section">
+        <h2>💡 ガチャを回す台を選ぶ</h2>
+        <form id="gacha-form">
+          <div class="form-group">
+            <label for="gacha-genre-filter">ジャンルで絞り込み</label>
+            <select id="gacha-genre-filter">
+              <option value="all">全て</option>
+              <option value="pachislot">🎰 パチスロ</option>
+              <option value="pachinko">🎯 パチンコ</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="position: relative;">
+            <label for="gacha-machine-input">機種名を検索・追加</label>
+            <input type="text" id="gacha-machine-input" placeholder="機種名を入力して追加" autocomplete="off">
+            <div id="gacha-suggestions" class="suggest-box"></div>
+          </div>
+          
+          <div class="form-group">
+            <label for="machine-selection">ガチャ対象の台リスト (複数選択可能)</label>
+            <select id="machine-selection" multiple size="8">
+              <!-- JavaScriptで動的にオプションが追加されます -->
+            </select>
+            <button type="button" class="btn btn-delete" style="margin-top: 10px; background: #e74c3c;" onclick="removeSelectedMachines()">選択した台を削除</button>
+          </div>
+
+          <button type="submit" class="btn">🚀 ガチャを回す！</button>
+        </form>
+      </div>
+
+      <!-- ガチャ結果表示エリア -->
+      <div id="gacha-result" class="gacha-result" style="display: none;">
+        <h3>今日のあなたにおすすめの台はこれだ！</h3>
+        <p>ジャンル: <span id="gacha-result-genre"></span></p>
+        <div class="gacha-machine-name" id="gacha-result-machine-name"></div>
+        <p>タイプ: <span id="gacha-result-type"></span></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ------------------------------
+    // 🔧 初期データ読み込み (pachinko_script.js と共有)
+    // ------------------------------
+    let baseMachines = []; // 外部JSONから読み込む基本機種リスト
+    let userMachines = JSON.parse(localStorage.getItem("userMachines") || "[]"); // ユーザーが追加した機種
+
+    fetch("dmmMachines.json")
+      .then(res => res.json())
+      .then(data => {
+        baseMachines = data;
+        loadMachinesForGacha(); // ガチャ用リストを初期表示
+      })
+      .catch(error => console.error("Error loading dmmMachines.json for gacha:", error));
+
+    // ------------------------------
+    // 🧠 正規化・略称処理 (pachinko_script.js と共有)
+    // ------------------------------
+    // pachinko_script.js と同じ normalizeName と aliasMap, resolveAlias をここにコピー
+    // または、pachinko_script.js からエクスポートして利用するように変更
+
+    /**
+     * 機種名を正規化する関数
+     * - 不要な記号や機種タイプを示すキーワードを除去
+     * - スペースを除去し、小文字に変換
+     * @param {string} name - 正規化する機種名
+     * @returns {string} 正規化された機種名
+     */
+    function normalizeName(name) {
+      return name
+        .replace(/[^\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Han}a-zA-Z0-9ー]/gu, "") // 日本語、英数字、長音記号以外の記号を除去
+        .replace(/スマスロ|Aタイプ|AT|ART|SLOT|パチンコ|パチスロ|CR|P/gi, "") // 機種タイプに関するキーワードを除去 (大文字小文字を区別しない)
+        .replace(/\s/g, "") // スペースを除去
+        .toLowerCase(); // 小文字に変換
+    }
+
+    // 機種名の略称や別名をマッピングするオブジェクト
+    const aliasMap = {
+      "東京喰種": ["グール", "東京グール", "喰種"],
+      "北斗の拳": ["北斗", "ホクト"],
+      "バジリスク絆2": ["絆", "バジ2", "絆2"],
+      "モンキーターン": ["モンキー", "猿"],
+      "からくりサーカス": ["からサ", "からくり"],
+      "かぐや様は告らせたい": ["かぐや様", "かぐや"],
+      "Re:ゼロから始める異世界生活 season2": ["リゼロ", "Re:ゼロ", "rezero"],
+      "コードギアス 反逆のルルーシュ/復活のルルーシュ": ["ギアス", "コードギアス"],
+      "炎炎ノ消防隊": ["炎炎"],
+      "ゴブリンスレイヤー": ["ゴブスレ"],
+      "ダンジョンに出会いを求めるのは間違っているだろうか2": ["ダンまち"],
+      "転生したらスライムだった件": ["転スラ"],
+      "とある魔術の禁書目録": ["とある"],
+      "バイオハザード:ヴェンデッタ": ["バイオ"],
+      "鬼武者3": ["鬼武者"],
+      "マクロスフロンティア4": ["マクロスF"],
+      "ひぐらしのなく頃に 業": ["ひぐらし"],
+      "ソードアート・オンライン": ["SAO", "sao"],
+      "劇場版 魔法少女まどか☆マギカ [新編] 叛逆の物語": ["まどマギ", "まどか"],
+      "戦国乙女4 戦乱に閃く炯眼の軍師": ["戦国乙女"],
+      "甲鉄城のカバネリ": ["カバネリ"],
+      "交響詩篇エウレカセブン4 HI-EVOLUTION": ["エウレカ", "エウレカセブン"],
+      "ゴールデンカムイ": ["金カム"],
+      "デビル メイ クライ5": ["DMC", "デビルメイクライ"],
+      "ギルティクラウン2": ["ギルクラ"],
+      "押忍！番長ZERO": ["番長ゼロ"],
+      "押忍！番長4": ["番長4"],
+      "Re:ゼロから始める異世界生活 season2": ["リゼロ"],
+      "ヱヴァンゲリヲン ～約束の扉～": ["エヴァ", "eva"],
+      "真・花の慶次": ["慶次", "けいじ"],
+      "モンスターハンターワールド：アイスボーン": ["モンハンアイスボーン", "MHアイスボーン"],
+      "スマスロバジリスク～甲賀忍法帖～絆2 天膳 BLACK EDITION": ["絆2天膳"],
+      "SLOTバジリスク絆2": ["絆2"],
+      "スマスロ 沖ドキ！DUOアンコール": ["沖ドキDUO"],
+      "スマスロ 沖ドキ！GOLD": ["沖ドキGOLD"],
+      "沖ドキ！GOLD（-30）": ["沖ドキGOLD-30"],
+      "沖ドキ！DUO": ["沖ドキDUO"],
+      "沖ドキ！BLACK": ["沖ドキBLACK"],
+      "沖ドキ！ゴージャス": ["沖ドキゴージャス"],
+      "スマスロ ゴーゴージャグラー3": ["ゴージャグ3"],
+      "スマスロ マイジャグラーV": ["マイジャグV"],
+      "スマスロ ファンキージャグラー2": ["ファンキー2"],
+      "スマスロ アイムジャグラーEX": ["アイムEX"],
+      "ゴーゴージャグラー": ["ゴージャグ"],
+      "ネオアイムジャグラー": ["ネオアイム"],
+      "ニューアイムジャグラーEX": ["ニューアイムEX"],
+      "ハッピージャグラーVIII": ["ハッピージャグラー"],
+      "ジャグラーガールズSS": ["ジャグラーガールズ"],
+      "ニューキングハナハナ": ["ニューキング"],
+      "ハナハナホウオウ～天翔～": ["ハナハナ天翔"],
+      "プレミアムハナハナ": ["プレミアムハナハナ"],
+      "バーサス リヴァイズ": ["バーサス"],
+      "パチスロ東京喰種": ["東京喰種"],
+      "パチスロ戦国乙女 暁の関ヶ原": ["戦国乙女"],
+      "パチスロ黄門ちゃま喝2": ["黄門ちゃま喝2"],
+      "パチスロ 革命機ヴァルヴレイヴ": ["ヴァルヴレイヴ"],
+      "パチスロ機動戦士ガンダム ユニコーン": ["ガンダムユニコーン"],
+      "パチスロ モンスターハンターワールド：アイスボーン": ["モンハンアイスボーン"],
+      "パチスロ政宗 戦極": ["政宗戦極"],
+      "パチスロ花の慶次": ["花の慶次"],
+      "パチスロ黄門ちゃまV女神盛-MEGAMORI-": ["黄門ちゃま女神盛"],
+      "Sアイドルマスター ミリオンライブ！": ["アイマスミリオン"],
+      "Sキン肉マン～7人の悪魔超人編～": ["キン肉マン"],
+      "Lパチスロガールズ&パンツァー劇場版": ["ガルパン劇場版"],
+      "L聖闘士星矢 海皇覚醒Special": ["聖闘士星矢SP"],
+      "L聖闘士星矢 海皇覚醒 CUSTOM EDITION": ["聖闘士星矢CE"],
+      "L戦国BASARA HEROES PARTY": ["戦国BASARA"],
+      "パチスロ シン・エヴァンゲリオン タイプ カヲル": ["シンエヴァ"],
+      "スマスロ 頭文字D 2nd Stage": ["頭文字D"],
+      "スマスロ ファイヤードリフト": ["ファイヤードリフト"],
+      "スマスロ バベル": ["バベル"],
+      "スマスロ 銭形5": ["銭形"],
+      "スマスロ サラリーマン金太郎": ["金太郎"],
+      "スマスロ ディスクアップ": ["ディスクアップ"],
+      "スマスロ ダンベル何キロ持てる？": ["ダンベル"],
+      "スマスロ 緑ドン VIVA!情熱南米編 REVIVAL": ["緑ドン"],
+      "スマスロ スーパービンゴネオ": ["ビンゴネオ"],
+      "スマスロ 吉宗RISING": ["吉宗"],
+      "L吉宗": ["吉宗"],
+      "L アズールレーン THE ANIMATION": ["アズールレーン"],
+      "パチスロ 転生したら剣でした": ["転スラ剣"],
+      "わたしの幸せな結婚": ["わた婚"],
+      "Lパチスロ ありふれた職業で世界最強": ["ありふれた"],
+      "L少女☆歌劇 レヴュースタァライト": ["スタァライト"],
+      "LBパチスロ ヱヴァンゲリヲン ～約束の扉～": ["エヴァ"]
+    };
+
+    /**
+     * 入力された機種名が略称の場合、正式名称を解決する関数
+     * @param {string} input - ユーザーが入力した機種名
+     * @returns {string} 解決された正式名称、または元の入力
+     */
+    function resolveAlias(input) {
+      const normalizedInput = normalizeName(input);
+      for (const [official, aliases] of Object.entries(aliasMap)) {
+        if (normalizedInput.includes(normalizeName(official))) {
+          return official;
+        }
+        if (aliases.some(alias => normalizedInput.includes(normalizeName(alias)))) {
+          return official;
+        }
+      }
+      return input;
+    }
+
+    // ------------------------------
+    // 🎲 ガチャ機能のロジック
+    // ------------------------------
+    const gachaForm = document.getElementById("gacha-form");
+    const gachaMachineInput = document.getElementById("gacha-machine-input");
+    const gachaSuggestionsBox = document.getElementById("gacha-suggestions");
+    const gachaGenreFilter = document.getElementById("gacha-genre-filter");
+    const machineSelection = document.getElementById("machine-selection");
+    const gachaResultDiv = document.getElementById("gacha-result");
+    const gachaResultMachineName = document.getElementById("gacha-result-machine-name");
+    const gachaResultGenre = document.getElementById("gacha-result-genre");
+    const gachaResultType = document.getElementById("gacha-result-type");
+
+    let gachaMachines = JSON.parse(localStorage.getItem("gachaMachines") || "[]"); // ガチャ対象として保存された機種リスト
+
+    /**
+     * ガチャ対象の機種リスト (machine-selection) をUIに表示する
+     */
+    function renderGachaMachines() {
+      machineSelection.innerHTML = ""; // 既存オプションをクリア
+      if (gachaMachines.length === 0) {
+        const option = document.createElement("option");
+        option.textContent = "ガチャ対象の台を追加してください";
+        option.disabled = true;
+        machineSelection.appendChild(option);
+        return;
+      }
+      gachaMachines.forEach((machine, index) => {
+        const option = document.createElement("option");
+        const genreIcon = machine.genre === 'pachinko' ? '🎯' : '🎰';
+        option.value = index; // 配列インデックスをvalueに設定
+        option.textContent = `${genreIcon} ${machine.name} (${machine.type})`;
+        machineSelection.appendChild(option);
+      });
+    }
+
+    /**
+     * ローカルストレージからガチャ対象の機種を読み込み、UIを更新する
+     */
+    function loadMachinesForGacha() {
+      gachaMachines = JSON.parse(localStorage.getItem("gachaMachines") || "[]");
+      renderGachaMachines();
+    }
+
+    /**
+     * 機種検索・追加入力フィールドのサジェスト機能
+     */
+    gachaMachineInput.addEventListener("input", function() {
+      const rawInput = this.value.trim();
+      const input = normalizeName(resolveAlias(rawInput));
+      gachaSuggestionsBox.innerHTML = "";
+
+      if (!input || input.length < 1) return;
+
+      const selectedGenreFilter = gachaGenreFilter.value;
+      const allAvailableMachines = [...baseMachines, ...userMachines];
+
+      const filteredByGenre = allAvailableMachines.filter(m => 
+        selectedGenreFilter === 'all' || m.genre === selectedGenreFilter || !m.genre // ジャンルが設定されていない機種も表示対象にする
+      );
+
+      const exactMatches = filteredByGenre.filter(m =>
+        normalizeName(m.name).startsWith(input)
+      );
+      const partialMatches = filteredByGenre.filter(m =>
+        normalizeName(m.name).includes(input) && !normalizeName(m.name).startsWith(input)
+      );
+      const matches = [...exactMatches, ...partialMatches];
+
+      if (matches.length === 0 && rawInput.length >= 2) {
+        const div = document.createElement("div");
+        div.style.color = "#888";
+        div.style.fontStyle = "italic";
+        div.textContent = `"${rawInput}" を追加`;
+        div.onclick = () => {
+          // ジャンルフィルタの選択値をジャンルとして使用
+          const genreToAdd = selectedGenreFilter !== 'all' ? selectedGenreFilter : 'pachislot'; // デフォルトはパチスロ
+          addMachineToGachaList({ name: rawInput, genre: genreToAdd, type: '不明' }); // タイプは不明として追加
+          gachaMachineInput.value = "";
+          gachaSuggestionsBox.innerHTML = "";
+        };
+        gachaSuggestionsBox.appendChild(div);
+        return;
+      }
+
+      matches.slice(0, 10).forEach(m => {
+        const div = document.createElement("div");
+        const genreIcon = (m.genre === 'pachinko' || m.type?.includes('デジパチ')) ? '🎯' : '🎰';
+        div.textContent = `${genreIcon} ${m.name}（${m.type || '不明'}）`;
+        div.onclick = () => {
+          addMachineToGachaList(m);
+          gachaMachineInput.value = "";
+          gachaSuggestionsBox.innerHTML = "";
+        };
+        gachaSuggestionsBox.appendChild(div);
+      });
+    });
+
+    gachaMachineInput.addEventListener("blur", () => {
+      setTimeout(() => gachaSuggestionsBox.innerHTML = "", 200);
+    });
+
+    gachaGenreFilter.addEventListener("change", () => {
+        gachaMachineInput.value = ""; // ジャンル変更時に入力クリア
+        gachaSuggestionsBox.innerHTML = ""; // サジェストもクリア
+    });
+
+    /**
+     * 機種をガチャリストに追加する
+     * @param {Object} machine - 追加する機種オブジェクト { name, type, genre }
+     */
+    function addMachineToGachaList(machine) {
+      // 既にリストに追加されているかチェック (機種名で判断)
+      const isDuplicate = gachaMachines.some(m => normalizeName(m.name) === normalizeName(machine.name));
+      if (isDuplicate) {
+        alert("この機種は既にガチャ対象リストに追加されています。");
+        return;
+      }
+      // ジャンル情報がない場合は、デフォルトでパチスロを設定
+      const machineWithGenre = { ...machine, genre: machine.genre || 'pachislot' }; 
+
+      gachaMachines.push(machineWithGenre);
+      localStorage.setItem("gachaMachines", JSON.stringify(gachaMachines));
+      renderGachaMachines();
+    }
+
+    /**
+     * 選択した機種をガチャリストから削除する
+     */
+    function removeSelectedMachines() {
+      const selectedOptions = Array.from(machineSelection.options).filter(option => option.selected);
+      if (selectedOptions.length === 0) {
+        alert("削除する台を選択してください。");
+        return;
+      }
+
+      if (confirm(`${selectedOptions.length}件の台をガチャ対象リストから削除しますか？`)) {
+        // 選択されていないものだけを残す
+        const remainingMachines = gachaMachines.filter((_, index) => 
+          !selectedOptions.some(option => Number(option.value) === index)
+        );
+        gachaMachines = remainingMachines;
+        localStorage.setItem("gachaMachines", JSON.stringify(gachaMachines));
+        renderGachaMachines();
+      }
+    }
+
+    /**
+     * ガチャを回す
+     */
+    gachaForm.addEventListener("submit", function(e) {
+      e.preventDefault();
+      if (gachaMachines.length === 0) {
+        alert("ガチャを回すには、まず台をリストに追加してください！");
+        return;
+      }
+
+      const randomIndex = Math.floor(Math.random() * gachaMachines.length);
+      const recommendedMachine = gachaMachines[randomIndex];
+
+      const genreIcon = recommendedMachine.genre === 'pachinko' ? '🎯' : '🎰';
+
+      gachaResultMachineName.textContent = `${genreIcon} ${recommendedMachine.name}`;
+      gachaResultGenre.textContent = recommendedMachine.genre === 'pachinko' ? 'パチンコ' : 'パチスロ';
+      gachaResultType.textContent = recommendedMachine.type || '不明';
+
+      gachaResultDiv.style.display = "block"; // 結果表示エリアを表示
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); // 結果までスクロール
+    });
+
+    // 初期ロード時にガチャ対象リストをレンダリング
+    loadMachinesForGacha();
+  </script>
+</body>
+</html>

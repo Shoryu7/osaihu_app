@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>家計簿アプリ - カレンダー</title>
+  <link rel="stylesheet" href="style.css"> <!-- 共通スタイルを適用 -->
+  <style>
+    /* カレンダー専用のスタイル */
+    .calendar-container {
+      /* form-section のスタイルを適用 */
+      background: #f8f9fa;
+      padding: 25px;
+      border-radius: 15px;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .calendar-header h2 {
+      font-size: 24px;
+      color: #333;
+    }
+
+    .calendar-header button {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: #4CAF50;
+      transition: color 0.3s;
+    }
+
+    .calendar-header button:hover {
+      color: #8BC34A;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+    }
+
+    .calendar-grid div {
+      padding: 10px 5px;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: 600;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      min-height: 70px; /* 日付セルに最低限の高さを持たせる */
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      position: relative;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08); /* 各セルに軽い影 */
+      border: 1px solid #e0e0e0; /* 各セルに薄いボーダー */
+    }
+
+    .calendar-grid .day-name {
+      background: #e0e0e0;
+      color: #555;
+      cursor: default;
+      font-size: 14px;
+      padding: 8px 5px;
+      min-height: unset;
+      box-shadow: none; /* 曜日ヘッダーは影なし */
+      border: none; /* 曜日ヘッダーはボーダーなし */
+    }
+
+    .calendar-grid .day-name.sunday {
+        color: #e74c3c; /* 赤 */
+    }
+
+    .calendar-grid .day-name.saturday {
+        color: #3498db; /* 青 */
+    }
+
+    .calendar-grid div:not(.day-name):hover {
+      background: #e6ffe6;
+      border: 1px solid #4CAF50;
+    }
+
+    .calendar-grid div.today {
+      border: 2px solid #4CAF50;
+      background: #f0fff0;
+      box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2); /* 今日の日付に影 */
+    }
+
+    .calendar-grid div.selected-day {
+      background: linear-gradient(135deg, #4CAF50 0%, #8BC34A 100%); /* indexのボタンと同じグラデーション */
+      color: white;
+      border: 2px solid #4CAF50;
+      box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3); /* 選択された日付に影 */
+    }
+
+    .calendar-grid div.empty {
+      background: #f0f0f0;
+      cursor: default;
+      color: #ccc;
+      box-shadow: none;
+      border: none;
+    }
+
+    .calendar-grid div .date-number {
+        font-size: 16px;
+        margin-bottom: 5px;
+        color: #333;
+    }
+
+    .calendar-grid div.selected-day .date-number {
+        color: white;
+    }
+
+    /* 収支表示 */
+    .calendar-grid div .income-badge, .calendar-grid div .expense-badge {
+        font-size: 10px;
+        padding: 2px 5px;
+        border-radius: 5px;
+        margin-top: 2px;
+        width: calc(100% - 10px);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-weight: normal; /* バッジの文字は太字にしない */
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05); /* バッジにも軽い影 */
+    }
+
+    .calendar-grid div .income-badge {
+        background-color: #e6ffe6; /* 薄い緑 */
+        color: #4CAF50;
+        border: 1px solid #4CAF50;
+    }
+
+    .calendar-grid div .expense-badge {
+        background-color: #fff0ed; /* 薄いオレンジ */
+        color: #FF5722;
+        border: 1px solid #FF5722;
+    }
+
+    /* 選択された日付の収支詳細 */
+    .selected-date-transactions {
+      /* form-section のスタイルを適用 */
+      background: #f8f9fa;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      margin-top: 30px; /* indexのform-sectionと同じ */
+    }
+
+    .selected-date-transactions h3 {
+      /* form-section h2 のスタイルを適用 */
+      color: #4CAF50;
+      margin-bottom: 20px;
+      font-size: 20px;
+      text-align: center; /* 中央寄せ */
+    }
+
+    #daily-history-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    #daily-history-list li {
+      padding: 12px 15px; /* history-item に合わせる */
+      margin-bottom: 10px; /* history-item に合わせる */
+      background: white;
+      border-radius: 10px;
+      border-left: 4px solid; /* タイプによって色が変わる */
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.3s;
+    }
+
+    #daily-history-list li.income {
+      border-left-color: #4CAF50;
+    }
+    #daily-history-list li.expense {
+      border-left-color: #FF5722;
+    }
+
+    #daily-history-list li:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 10px rgba(0,0,0,0.15);
+    }
+
+    #daily-history-list li .transaction-detail {
+        flex-grow: 1;
+        text-align: left;
+    }
+
+    #daily-history-list li .transaction-amount {
+        font-weight: 700;
+        font-size: 18px; /* history-amount に合わせる */
+        min-width: 100px; /* 金額表示の幅を確保 */
+        text-align: right;
+    }
+
+    #daily-history-list li .transaction-amount.income {
+        color: #4CAF50;
+    }
+
+    #daily-history-list li .transaction-amount.expense {
+        color: #FF5722;
+    }
+
+    #daily-history-list li .transaction-category {
+        font-size: 14px; /* history-info に合わせる */
+        color: #555;
+        font-weight: 600;
+        display: block;
+        margin-bottom: 2px;
+    }
+    #daily-history-list li .transaction-memo {
+        font-size: 13px; /* history-memo に合わせる */
+        color: #777;
+        display: block;
+    }
+
+    .no-transactions {
+      text-align: center;
+      color: #777;
+      padding: 20px;
+      background: white; /* no-transactions メッセージもボックスに入れる */
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    /* スマートフォンでの表示調整 */
+    @media (max-width: 600px) {
+        .calendar-grid div {
+            padding: 5px 2px;
+            min-height: 60px;
+        }
+        .calendar-grid div .date-number {
+            font-size: 14px;
+        }
+        .calendar-grid div .income-badge, .calendar-grid div .expense-badge {
+            font-size: 9px;
+            padding: 1px 3px;
+        }
+        .calendar-header h2 {
+            font-size: 20px;
+        }
+        .calendar-header button {
+            font-size: 20px;
+        }
+        #daily-history-list li {
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 10px;
+        }
+        #daily-history-list li .transaction-amount {
+            align-self: flex-end; /* 金額を右寄せ */
+            margin-top: 5px;
+        }
+        #daily-history-list li .transaction-category,
+        #daily-history-list li .transaction-memo {
+            text-align: left;
+        }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📅 カレンダー</h1>
+      <p>日付ごとの収支を確認しましょう</p>
+      <!-- ナビゲーションリンク -->
+      <div class="nav-links">
+        <a href="index.html" class="nav-link">🏠 ホーム</a>
+        <a href="graph.html" class="nav-link">📊 グラフ</a>
+        <a href="category_manager.html" class="nav-link">🏷️ カテゴリ管理</a>
+        <a href="pachinko_index.html" class="nav-link">🎰 パチスロ収支</a>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="calendar-container">
+        <div class="calendar-header">
+          <button id="prev-month">‹</button>
+          <h2 id="current-month-year"></h2>
+          <button id="next-month">›</button>
+        </div>
+        <div class="calendar-grid" id="calendar-grid">
+          <!-- 曜日ヘッダー -->
+          <div class="day-name sunday">日</div>
+          <div class="day-name">月</div>
+          <div class="day-name">火</div>
+          <div class="day-name">水</div>
+          <div class="day-name">木</div>
+          <div class="day-name">金</div>
+          <div class="day-name saturday">土</div>
+          <!-- 日付はJavaScriptで動的に生成 -->
+        </div>
+      </div>
+
+      <div class="selected-date-transactions">
+        <h3 id="selected-date-title">選択された日付: -</h3>
+        <ul id="daily-history-list">
+          <!-- 選択された日付の収支がここに表示される -->
+        </ul>
+        <p id="no-transactions-message" class="no-transactions" style="display: none;">この日の収支はありません。</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 共通のlocalStorageキー
+    const STORAGE_KEY = 'household_account_book_transactions';
+    let currentMonth = new Date();
+    let selectedDate = null; // 選択された日付を保持
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderCalendar();
+      document.getElementById('prev-month').addEventListener('click', () => {
+        currentMonth.setMonth(currentMonth.getMonth() - 1);
+        renderCalendar();
+      });
+      document.getElementById('next-month').addEventListener('click', () => {
+        currentMonth.setMonth(currentMonth.getMonth() + 1);
+        renderCalendar();
+      });
+    });
+
+    function renderCalendar() {
+      const monthYearDisplay = document.getElementById('current-month-year');
+      const calendarGrid = document.getElementById('calendar-grid');
+
+      // 月の表示を更新
+      monthYearDisplay.textContent = `${currentMonth.getFullYear()}年 ${currentMonth.getMonth() + 1}月`;
+
+      // 既存の日付セルをクリア（曜日ヘッダーは残す）
+      // `.day-name` クラスを持たない要素のみを削除
+      Array.from(calendarGrid.children).forEach(child => {
+        if (!child.classList.contains('day-name')) {
+          calendarGrid.removeChild(child);
+        }
+      });
+
+      const year = currentMonth.getFullYear();
+      const month = currentMonth.getMonth(); // 0-indexed
+
+      // その月の最初の日
+      const firstDayOfMonth = new Date(year, month, 1);
+      // その月の最終日
+      const lastDayOfMonth = new Date(year, month + 1, 0);
+      const numDays = lastDayOfMonth.getDate();
+
+      // 1日の曜日 (0:日, 1:月, ..., 6:土)
+      const startDay = firstDayOfMonth.getDay();
+
+      // 先月の空白を埋める
+      for (let i = 0; i < startDay; i++) {
+        const emptyDiv = document.createElement('div');
+        emptyDiv.classList.add('empty');
+        calendarGrid.appendChild(emptyDiv);
+      }
+
+      // 今日の日付を取得
+      const today = new Date();
+      const todayYear = today.getFullYear();
+      const todayMonth = today.getMonth();
+      const todayDate = today.getDate();
+
+      // 保存された全取引データを取得
+      const allTransactions = getTransactions();
+
+      // 日付のセルを生成
+      for (let i = 1; i <= numDays; i++) {
+        const dayDiv = document.createElement('div');
+        dayDiv.innerHTML = `<span class="date-number">${i}</span>`;
+        dayDiv.dataset.date = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+
+        // 今日の日付をハイライト
+        if (year === todayYear && month === todayMonth && i === todayDate) {
+          dayDiv.classList.add('today');
+        }
+
+        // 選択された日付をハイライト
+        if (selectedDate && dayDiv.dataset.date === selectedDate) {
+            dayDiv.classList.add('selected-day');
+        }
+
+        // その日の収支合計を計算し、バッジを追加
+        const dailyTransactions = allTransactions.filter(t => t.date === dayDiv.dataset.date);
+        const dailyIncome = dailyTransactions.filter(t => t.type === 'income').reduce((sum, t) => sum + parseFloat(t.amount), 0);
+        const dailyExpense = dailyTransactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + parseFloat(t.amount), 0);
+
+        if (dailyIncome > 0) {
+            const incomeBadge = document.createElement('span');
+            incomeBadge.classList.add('income-badge');
+            incomeBadge.textContent = `+${dailyIncome.toLocaleString()}円`;
+            dayDiv.appendChild(incomeBadge);
+        }
+        if (dailyExpense > 0) {
+            const expenseBadge = document.createElement('span');
+            expenseBadge.classList.add('expense-badge');
+            expenseBadge.textContent = `-${dailyExpense.toLocaleString()}円`;
+            dayDiv.appendChild(expenseBadge);
+        }
+
+
+        dayDiv.addEventListener('click', (event) => {
+            // 既に選択されている日付があればハイライトを解除
+            const prevSelected = document.querySelector('.calendar-grid .selected-day');
+            if (prevSelected) {
+                prevSelected.classList.remove('selected-day');
+            }
+            // 新しく選択された日付にハイライトを追加
+            dayDiv.classList.add('selected-day');
+            selectedDate = dayDiv.dataset.date; // 選択された日付を更新
+            displayDailyTransactions(selectedDate);
+        });
+
+        calendarGrid.appendChild(dayDiv);
+      }
+
+      // 最後の週の空白を埋める
+      const totalCells = startDay + numDays;
+      const remainingCells = (7 - (totalCells % 7)) % 7; // 7の倍数にするために必要なセル数
+      for (let i = 0; i < remainingCells; i++) {
+        const emptyDiv = document.createElement('div');
+        emptyDiv.classList.add('empty');
+        calendarGrid.appendChild(emptyDiv);
+      }
+
+      // カレンダー表示更新後、もしselectedDateが現在の月に含まれていれば、その日の取引を表示
+      // または、デフォルトで今日の日付の取引を表示
+      if (!selectedDate || !selectedDate.startsWith(`${year}-${String(month + 1).padStart(2, '0')}`)) {
+          // 現在の月に選択された日付がない場合、またはまだ何も選択されていない場合
+          // 今日の日付を選択状態にするか、デフォルトで何もしない
+          // 今回はカレンダー表示時にselectedDateがnullでなければ、その日付を再選択して表示する
+          if (year === todayYear && month === todayMonth) {
+            // 今日の日付が現在の月にある場合、自動的に選択して表示
+            selectedDate = `${todayYear}-${String(todayMonth + 1).padStart(2, '0')}-${String(todayDate).padStart(2, '0')}`;
+            const todayElement = document.querySelector(`.calendar-grid div[data-date="${selectedDate}"]`);
+            if (todayElement) {
+                todayElement.classList.add('selected-day');
+                displayDailyTransactions(selectedDate);
+            }
+          } else {
+            // 現在の月に今日の日付がない場合、またはselectedDateがnullの場合、表示をクリア
+            document.getElementById('selected-date-title').textContent = `選択された日付: -`;
+            document.getElementById('daily-history-list').innerHTML = '';
+            document.getElementById('no-transactions-message').style.display = 'block';
+          }
+      } else {
+        // selectedDateが現在の月に含まれていれば、その日付の取引を再表示
+        displayDailyTransactions(selectedDate);
+      }
+    }
+
+    function getTransactions() {
+      const transactionsJson = localStorage.getItem(STORAGE_KEY);
+      return transactionsJson ? JSON.parse(transactionsJson) : [];
+    }
+
+    function displayDailyTransactions(date) {
+        const selectedDateTitle = document.getElementById('selected-date-title');
+        const dailyHistoryList = document.getElementById('daily-history-list');
+        const noTransactionsMessage = document.getElementById('no-transactions-message');
+
+        selectedDateTitle.textContent = `選択された日付: ${date}`;
+        dailyHistoryList.innerHTML = ''; // リストをクリア
+
+        const transactions = getTransactions();
+        const dailyTransactions = transactions.filter(t => t.date === date);
+
+        if (dailyTransactions.length === 0) {
+            noTransactionsMessage.style.display = 'block';
+            return;
+        } else {
+            noTransactionsMessage.style.display = 'none';
+        }
+
+        dailyTransactions.forEach(transaction => {
+            const listItem = document.createElement('li');
+            const amountClass = transaction.type === 'income' ? 'income' : 'expense';
+            const sign = transaction.type === 'income' ? '+' : '-';
+
+            listItem.classList.add(amountClass); // income/expense クラスを li 要素に追加
+
+            listItem.innerHTML = `
+                <div class="transaction-detail">
+                    <span class="transaction-category">${transaction.mainCategory}</span>
+                    ${transaction.memo ? `<span class="transaction-memo">${transaction.memo}</span>` : ''}
+                </div>
+                <span class="transaction-amount ${amountClass}">${sign}${parseFloat(transaction.amount).toLocaleString()}円</span>
+            `;
+            dailyHistoryList.appendChild(listItem);
+        });
+    }
+
+    // 初回ロード時に今日の日付を選択状態にする
+    const today = new Date();
+    selectedDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    // renderCalendar内で自動的に選択されるように調整 (DOMContentLoadedでselectedDateがセットされる)
+  </script>
+</body>
+</html>

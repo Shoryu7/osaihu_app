@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="images/icon-192x192.png"> <!-- iOS用のアイコン -->
+<meta name="apple-mobile-web-app-capable" content="yes"> <!-- iOSで全画面表示を有効にする -->
+<meta name="apple-mobile-web-app-status-bar-style" content="black"> <!-- iOSのステータスバーの色 -->
+<meta name="apple-mobile-web-app-title" content="おさいふ日記"> <!-- iOSでのアプリ名 -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>家計簿アプリ</title>
+  <link rel="stylesheet" href="style.css"> <!-- 共通スタイルを適用 -->
+  <style>
+    /* index.html 固有のスタイルは style.css に移動したため、ここでは特別なスタイルは不要 */
+  </style>
+  
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>💰 家計簿アプリ</h1>
+      <p>日々の収支を記録して家計を管理しましょう</p>
+      <!-- ナビゲーションリンク -->
+      <div class="nav-links">
+        <a href="calendar.html" class="nav-link">📅 カレンダー</a>
+        <a href="graph.html" class="nav-link">📊 グラフ</a>
+        <a href="category_manager.html" class="nav-link">🏷️ カテゴリ管理</a>
+        <a href="pachinko_index.html" class="nav-link">🎰 パチスロ収支</a>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- 収支登録フォームセクション -->
+      <div class="form-section">
+        <h2>📝 収支を登録</h2>
+        <form id="record-form">
+          <!-- 収入/支出タイプ選択タブ -->
+          <div class="type-tabs">
+            <div class="type-tab active" data-type="expense">支出</div>
+            <div class="type-tab" data-type="income">収入</div>
+          </div>
+          <input type="hidden" id="transaction-type" value="expense">
+
+          <div class="form-group">
+            <label for="date">日付</label>
+            <input type="date" id="date" required>
+          </div>
+
+          <div class="form-group">
+            <label for="amount">金額（円）</label>
+            <input type="number" id="amount" placeholder="例: 3000" required>
+          </div>
+
+          <div class="form-group">
+            <label for="main-category">カテゴリ</label>
+            <select id="main-category" required>
+              <option value="">選択してください</option>
+              <!-- カテゴリはJavaScriptで動的に追加されます -->
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="memo">メモ（任意）</label>
+            <textarea id="memo" placeholder="例: 食費（ランチ）" rows="3"></textarea>
+          </div>
+
+          <button type="submit" class="btn">✅ 登録する</button>
+        </form>
+      </div>
+
+      <!-- 最新の収支履歴表示セクション -->
+      <div class="form-section">
+        <h2>📜 最新の収支履歴</h2>
+        <ul id="history-list"></ul>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js')
+      .then(registration => {
+        console.log('ServiceWorker registered: ', registration);
+      })
+      .catch(error => {
+        console.log('ServiceWorker registration failed: ', error);
+      });
+  });
+}
+</body>
+</html>

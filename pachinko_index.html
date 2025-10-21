@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>パチンコ・パチスロ収支管理</title>
+  <style>
+    /* 全体的なリセット */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    /* bodyのスタイル: フォント、背景グラデーション、最小高さ、パディング */
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    /* メインコンテナのスタイル: 最大幅、中央寄せ、背景、角丸、影、オーバーフロー処理 */
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+
+    /* ヘッダーのスタイル: 背景グラデーション、文字色、パディング、中央寄せ */
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+
+    /* ヘッダーのタイトル */
+    .header h1 { font-size: 28px; margin-bottom: 10px; }
+
+    /* ナビゲーションリンク個別のスタイル (ヘッダー内のリンク) */
+    .nav-link {
+      display: inline-block;
+      margin-top: 15px;
+      padding: 10px 20px;
+      background: rgba(255,255,255,0.2);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+
+    /* ナビゲーションリンクホバー時のスタイル */
+    .nav-link:hover {
+      background: rgba(255,255,255,0.3);
+      transform: translateY(-2px);
+    }
+
+    /* コンテンツエリアのスタイル */
+    .content { padding: 30px; }
+
+    /* フォームセクションのスタイル */
+    .form-section {
+      background: #f8f9fa;
+      padding: 25px;
+      border-radius: 15px;
+      margin-bottom: 30px;
+    }
+
+    /* フォームセクションのタイトル */
+    .form-section h2 {
+      color: #667eea;
+      margin-bottom: 20px;
+      font-size: 20px;
+    }
+
+    /* フォームグループ (ラベルと入力欄のセット) のスタイル */
+    .form-group {
+      margin-bottom: 15px;
+      position: relative; /* サジェストボックス配置のため */
+    }
+
+    /* ラベルのスタイル */
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    /* inputとselect要素の基本スタイル */
+    input, select {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 16px;
+      transition: all 0.3s;
+    }
+
+    /* inputとselect要素フォーカス時のスタイル */
+    input:focus, select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    /* ボタンの基本スタイル */
+    .btn {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      transition: all 0.3s;
+    }
+
+    /* ボタンホバー時のスタイル */
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    /* サジェストボックスのスタイル */
+    .suggest-box {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 2px solid #667eea;
+      border-top: none;
+      border-radius: 0 0 10px 10px;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 10;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+
+    /* サジェストボックス内の各候補アイテムのスタイル */
+    .suggest-box div {
+      padding: 10px 15px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    /* サジェストボックス内の各候補アイテムホバー時のスタイル */
+    .suggest-box div:hover {
+      background: #f0f2ff;
+    }
+
+    /* 履歴リストのスタイル */
+    #history-list {
+      list-style: none; /* デフォルトのリストスタイルを削除 */
+    }
+
+    /* 履歴アイテム個別のスタイル */
+    .history-item {
+      background: white;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 10px;
+      border-left: 4px solid #667eea;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    /* プラス収支の履歴アイテムの左ボーダー色 */
+    .history-item.positive {
+      border-left-color: #2ecc71; /* 緑 */
+    }
+
+    /* マイナス収支の履歴アイテムの左ボーダー色 */
+    .history-item.negative {
+      border-left-color: #e74c3c; /* 赤 */
+    }
+
+    /* 履歴情報のスタイル */
+    .history-info {
+      margin-bottom: 10px;
+      color: #555;
+    }
+
+    /* 収支金額のスタイル */
+    .history-amount {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 5px 0;
+    }
+
+    /* プラス収支の金額色 */
+    .history-amount.positive {
+      color: #2ecc71;
+    }
+
+    /* マイナス収支の金額色 */
+    .history-amount.negative {
+      color: #e74c3c;
+    }
+
+    /* 履歴操作ボタンコンテナのスタイル */
+    .history-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    /* 小ボタンの基本スタイル */
+    .btn-small {
+      flex: 1; /* 親要素の幅に合わせて伸縮 */
+      padding: 8px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    /* 編集ボタンのスタイル */
+    .btn-edit {
+      background: #3498db; /* 青 */
+      color: white;
+    }
+
+    /* 編集ボタンホバー時のスタイル */
+    .btn-edit:hover {
+      background: #2980b9;
+    }
+
+    /* 削除ボタンのスタイル */
+    .btn-delete {
+      background: #e74c3c; /* 赤 */
+      color: white;
+    }
+
+    /* 削除ボタンホバー時のスタイル */
+    .btn-delete:hover {
+      background: #c0392b;
+    }
+
+    /* ジャンル選択タブのコンテナスタイル */
+    .genre-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    /* ジャンルタブ個別のスタイル */
+    .genre-tab {
+      flex: 1;
+      padding: 10px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      background: white;
+      cursor: pointer;
+      text-align: center;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+
+    /* アクティブなジャンルタブのスタイル */
+    .genre-tab.active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-color: #667eea;
+    }
+
+    /* ジャンルタブホバー時のスタイル */
+    .genre-tab:hover {
+      border-color: #667eea;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎰 パチンコ・パチスロ収支管理</h1>
+      <p>あなたの収支をしっかり記録</p>
+      <!-- ナビゲーションリンク -->
+      <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 15px;">
+        <a href="index.html" class="nav-link">🏠 家計簿ホーム</a>
+        <a href="register.html" class="nav-link">📝 機種登録</a>
+        <a href="pachinko_calendar.html" class="nav-link">📅 カレンダー</a>
+        <a href="pachinko_graph.html" class="nav-link">📊 グラフ</a>
+        <a href="pachinko_gacha.html" class="nav-link">🎰 ガチャ</a> 
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- 収支登録フォームセクション -->
+      <div class="form-section">
+        <h2>📝 収支を登録</h2>
+        <form id="income-form">
+          <!-- ジャンル選択タブ -->
+          <div class="genre-tabs">
+            <div class="genre-tab active" data-genre="pachislot">🎰 パチスロ</div>
+            <div class="genre-tab" data-genre="pachinko">🎯 パチンコ</div>
+          </div>
+
+          <!-- 選択されたジャンルを保持する隠しフィールド -->
+          <input type="hidden" id="genre" value="pachislot">
+
+          <div class="form-group">
+            <label for="date">日付</label>
+            <input type="date" id="date" required>
+          </div>
+
+          <div class="form-group" style="position: relative;">
+            <label for="machine">機種名</label>
+            <input type="text" id="machine" placeholder="機種名を入力" autocomplete="off" required>
+            <!-- 機種名サジェスト表示エリア -->
+            <div id="suggestions" class="suggest-box"></div>
+          </div>
+
+          <div class="form-group">
+            <label for="type-filter">機種タイプ</label>
+            <!-- 機種タイプ選択 (ジャンルに応じて内容が変化) -->
+            <select id="type-filter">
+              <option value="">すべて</option>
+              <option value="スマスロ">スマスロ</option>
+              <option value="AT">AT</option>
+              <option value="Aタイプ">Aタイプ</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="investment">投資額（円）</label>
+            <input type="number" id="investment" placeholder="例: 10000" required>
+          </div>
+
+          <div class="form-group">
+            <label for="return">回収額（円）</label>
+            <input type="number" id="return" placeholder="例: 15000" required>
+          </div>
+
+          <button type="submit" class="btn">✅ 登録する</button>
+        </form>
+      </div>
+
+      <!-- 収支履歴表示セクション -->
+      <div class="form-section">
+        <h2>📜 収支履歴</h2>
+        <ul id="history-list"></ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- アプリケーションロジックを含むJavaScriptファイルの読み込み -->
+  <script src="pachinko_script.js"></script>
+</body>
+</html>

@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>機種登録管理</title>
+  <style>
+    /* 全体的なリセット */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    /* bodyのスタイル: フォント、背景グラデーション、最小高さ、パディング */
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    /* メインコンテナのスタイル: 最大幅、中央寄せ、背景、角丸、影、オーバーフロー処理 */
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+
+    /* ヘッダーのスタイル: 背景グラデーション、文字色、パディング、中央寄せ */
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+
+    /* ヘッダーのタイトル */
+    .header h1 { font-size: 28px; margin-bottom: 10px; }
+
+    /* コンテンツエリアのスタイル */
+    .content { padding: 30px; }
+
+    /* フォームセクションのスタイル */
+    .form-section {
+      background: #f8f9fa;
+      padding: 25px;
+      border-radius: 15px;
+      margin-bottom: 30px;
+    }
+
+    /* フォームセクションのタイトル */
+    .form-section h2 {
+      color: #667eea;
+      margin-bottom: 20px;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* フォームグループ (ラベルと入力欄のセット) のスタイル */
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    /* ラベルのスタイル */
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    /* inputとselect要素の基本スタイル */
+    input, select {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 16px;
+      transition: all 0.3s;
+    }
+
+    /* inputとselect要素フォーカス時のスタイル */
+    input:focus, select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    /* ボタンの基本スタイル */
+    .btn {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    /* プライマリボタンのスタイル */
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    /* プライマリボタンホバー時のスタイル */
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    /* 危険操作ボタンのスタイル */
+    .btn-danger {
+      background: #ff4757;
+      color: white;
+      margin-top: 10px;
+    }
+
+    /* 危険操作ボタンホバー時のスタイル */
+    .btn-danger:hover {
+      background: #ff3838;
+      transform: translateY(-2px);
+    }
+
+    /* 機種リストのスタイル */
+    .machine-list {
+      max-height: 400px;
+      overflow-y: auto;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      padding: 15px;
+    }
+
+    /* 機種リストアイテム個別のスタイル */
+    .machine-item {
+      background: white;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 10px;
+      border-left: 4px solid #667eea;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.3s;
+    }
+
+    /* 機種リストアイテムホバー時のスタイル */
+    .machine-item:hover {
+      transform: translateX(5px);
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    }
+
+    /* 機種情報のスタイル */
+    .machine-info {
+      flex: 1;
+    }
+
+    /* 機種名のスタイル */
+    .machine-name {
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 5px;
+    }
+
+    /* 機種タイプ表示のスタイル */
+    .machine-type {
+      display: inline-block;
+      padding: 4px 12px;
+      background: #667eea;
+      color: white;
+      border-radius: 20px;
+      font-size: 12px;
+    }
+
+    /* 削除ボタンのスタイル (機種アイテム内) */
+    .btn-delete {
+      padding: 8px 15px;
+      background: #ff4757;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    /* 削除ボタンホバー時のスタイル (機種アイテム内) */
+    .btn-delete:hover {
+      background: #ff3838;
+    }
+
+    /* サジェストボックスのスタイル */
+    .suggest-box {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 2px solid #667eea;
+      border-top: none;
+      border-radius: 0 0 10px 10px;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 10;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+
+    /* サジェストボックス内の各候補アイテムのスタイル */
+    .suggest-box div {
+      padding: 12px 15px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    /* サジェストボックス内の各候補アイテムホバー時のスタイル */
+    .suggest-box div:hover {
+      background: #f0f2ff;
+    }
+
+    /* アラートメッセージの基本スタイル */
+    .alert {
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      animation: slideIn 0.3s; /* アニメーション */
+    }
+
+    /* 成功アラートのスタイル */
+    .alert-success {
+      background: #d4edda;
+      color: #155724;
+      border: 2px solid #c3e6cb;
+    }
+
+    /* 危険アラートのスタイル */
+    .alert-danger {
+      background: #f8d7da;
+      color: #721c24;
+      border: 2px solid #f5c6cb;
+    }
+
+    /* 警告アラートのスタイル */
+    .alert-warning {
+      background: #fff3cd;
+      color: #856404;
+      border: 2px solid #ffeaa7;
+    }
+
+    /* アラート表示アニメーション */
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* 統計情報のコンテナスタイル */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* レスポンシブな3列 */
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+
+    /* 統計情報ボックス個別のスタイル */
+    .stat-box {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 15px;
+      text-align: center;
+    }
+
+    /* 統計数値のスタイル */
+    .stat-number {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+
+    /* 統計ラベルのスタイル */
+    .stat-label {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    /* 戻るリンクのスタイル */
+    .back-link {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: rgba(255,255,255,0.2);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+
+    /* 戻るリンクホバー時のスタイル */
+    .back-link:hover {
+      background: rgba(255,255,255,0.3);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎰 機種登録管理</h1>
+      <p>新しい機種を登録したり、既存の機種を管理できます</p>
+      <a href="pachinko_index.html" class="back-link">← 収支管理に戻る</a>
+    </div>
+
+    <div class="content">
+      <!-- 統計情報表示エリア -->
+      <div class="stats">
+        <div class="stat-box">
+          <div class="stat-number" id="base-count">0</div>
+          <div class="stat-label">登録済み機種</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-number" id="user-count">0</div>
+          <div class="stat-label">ユーザー追加</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-number" id="total-count">0</div>
+          <div class="stat-label">合計機種数</div>
+        </div>
+      </div>
+
+      <!-- アラートメッセージ表示エリア -->
+      <div id="alert-area"></div>
+
+      <!-- 新規機種登録フォームセクション -->
+      <div class="form-section">
+        <h2>📝 新しい機種を登録</h2>
+        <form id="register-form">
+          <div class="form-group" style="position: relative;">
+            <label for="machine-name">機種名</label>
+            <input type="text" id="machine-name" placeholder="例: スマスロ モンキーターンV" required autocomplete="off">
+            <!-- 機種名サジェスト表示エリア -->
+            <div id="suggestions" class="suggest-box"></div>
+          </div>
+
+          <!-- ジャンル選択 -->
+          <div class="form-group">
+            <label for="machine-genre">ジャンル</label>
+            <select id="machine-genre" required>
+              <option value="pachislot">🎰 パチスロ</option>
+              <option value="pachinko">🎯 パチンコ</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="machine-type">機種タイプ</label>
+            <!-- 機種タイプ選択 (ジャンルに応じて内容が変化) -->
+            <select id="machine-type" required>
+              <option value="">選択してください</option>
+              <option value="スマスロ">スマスロ</option>
+              <option value="AT">AT</option>
+              <option value="Aタイプ">Aタイプ</option>
+            </select>
+          </div>
+
+          <button type="submit" class="btn btn-primary">✅ 登録する</button>
+        </form>
+      </div>
+
+      <!-- ユーザー登録機種一覧表示セクション -->
+      <div class="form-section">
+        <h2>📋 登録済み機種一覧（ユーザー追加分）</h2>
+        <div class="machine-list" id="user-machine-list">
+          <p style="text-align: center; color: #999;">まだ機種が登録されていません</p>
+        </div>
+        <button class="btn btn-danger" onclick="clearAllUserMachines()">🗑️ すべてクリア</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ------------------------------
+    // 🔧 初期データ読み込み
+    // ------------------------------
+    let baseMachines = []; // 外部JSONから読み込む基本機種リスト
+    // ローカルストレージからユーザーが追加した機種リストを読み込み、なければ空の配列
+    let userMachines = JSON.parse(localStorage.getItem("userMachines") || "[]");
+
+    // dmmMachines.json から機種データを非同期で読み込む
+    fetch("dmmMachines.json")
+      .then(res => res.json())
+      .then(data => {
+        baseMachines = data; // 読み込んだデータを基本機種リストにセット
+        updateStats(); // 統計情報を更新
+      })
+      .catch(error => console.error("Error loading dmmMachines.json:", error));
+
+    // ------------------------------
+    // 🧠 正規化・略称処理
+    // ------------------------------
+
+    /**
+     * 機種名を正規化する関数
+     * - 不要な記号や機種タイプを示すキーワードを除去
+     * - スペースを除去し、小文字に変換
+     * @param {string} name - 正規化する機種名
+     * @returns {string} 正規化された機種名
+     */
+    function normalizeName(name) {
+      return name
+        .replace(/[^\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Han}a-zA-Z0-9ー]/gu, "") // 日本語、英数字、長音記号以外の記号を除去
+        .replace(/スマスロ|Aタイプ|AT|ART|SLOT|パチンコ|パチスロ|CR|P/gi, "") // 機種タイプに関するキーワードを除去 (大文字小文字を区別しない)
+        .replace(/\s/g, "") // スペースを除去
+        .toLowerCase(); // 小文字に変換
+    }
+
+    // 機種名の略称や別名をマッピングするオブジェクト
+    const aliasMap = {
+      "東京喰種": ["グール", "東京グール", "喰種"],
+      "北斗の拳": ["北斗", "ホクト"],
+      "バジリスク絆2": ["絆", "バジ2", "絆2"],
+      "モンキーターン": ["モンキー", "猿"],
+      "からくりサーカス": ["からサ", "からくり"],
+      "かぐや様は告らせたい": ["かぐや様", "かぐや"], // フルネームも追加
+      "Re:ゼロから始める異世界生活 season2": ["リゼロ", "Re:ゼロ", "rezero"], // フルネームも追加
+      "コードギアス 反逆のルルーシュ/復活のルルーシュ": ["ギアス", "コードギアス"], // フルネームも追加
+      "炎炎ノ消防隊": ["炎炎"], // フルネームも追加
+      "ゴブリンスレイヤー": ["ゴブスレ"], // フルネームも追加
+      "ダンジョンに出会いを求めるのは間違っているだろうか2": ["ダンまち"], // フルネームも追加
+      "転生したらスライムだった件": ["転スラ"], // フルネームも追加
+      "とある魔術の禁書目録": ["とある"], // フルネームも追加
+      "バイオハザード:ヴェンデッタ": ["バイオ"], // フルネームも追加
+      "鬼武者3": ["鬼武者"], // フルネームも追加
+      "マクロスフロンティア4": ["マクロスF"], // フルネームも追加
+      "ひぐらしのなく頃に 業": ["ひぐらし"], // フルネームも追加
+      "ソードアート・オンライン": ["SAO", "sao"], // フルネームも追加
+      "劇場版 魔法少女まどか☆マギカ [新編] 叛逆の物語": ["まどマギ", "まどか"], // フルネームも追加
+      "戦国乙女4 戦乱に閃く炯眼の軍師": ["戦国乙女"], // フルネームも追加
+      "甲鉄城のカバネリ": ["カバネリ"], // フルネームも追加
+      "交響詩篇エウレカセブン4 HI-EVOLUTION": ["エウレカ", "エウレカセブン"], // フルネームも追加
+      "ゴールデンカムイ": ["金カム"], // フルネームも追加
+      "デビル メイ クライ5": ["DMC", "デビルメイクライ"], // フルネームも追加
+      "ギルティクラウン2": ["ギルクラ"], // フルネームも追加
+      "押忍！番長ZERO": ["番長ゼロ"], // フルネームも追加
+      "押忍！番長4": ["番長4"], // フルネームも追加
+      "Re:ゼロから始める異世界生活 season2": ["リゼロ"],
+      "ヱヴァンゲリヲン ～約束の扉～": ["エヴァ", "eva"],
+      "真・花の慶次": ["慶次", "けいじ"],
+      "モンスターハンターワールド：アイスボーン": ["モンハンアイスボーン", "MHアイスボーン"]
+    };
+
+    /**
+     * 入力された機種名が略称の場合、正式名称を解決する関数
+     * @param {string} input - ユーザーが入力した機種名
+     * @returns {string} 解決された正式名称、または元の入力
+     */
+    function resolveAlias(input) {
+      const normalizedInput = input.toLowerCase();
+      for (const [official, aliases] of Object.entries(aliasMap)) {
+        if (aliases.some(alias => normalizedInput.includes(alias.toLowerCase()))) {
+          return official;
+        }
+      }
+      return input; // 解決できない場合は元の入力を返す
+    }
+
+    /**
+     * 指定された機種名が既に登録されているか（基本機種またはユーザー追加機種）をチェックする関数
+     * @param {string} name - チェックする機種名
+     * @returns {boolean} 重複している場合はtrue、そうでない場合はfalse
+     */
+    function isDuplicate(name) {
+      const normalized = normalizeName(name);
+      const allMachines = [...baseMachines, ...userMachines]; // 全ての機種リストを結合
+      return allMachines.some(m => normalizeName(m.name) === normalized);
+    }
+
+    // ------------------------------
+    // ⚙️ イベントリスナー設定
+    // ------------------------------
+
+    // ジャンル選択 (パチスロ/パチンコ) が変更された際の処理
+    document.getElementById("machine-genre").addEventListener("change", function() {
+      const genre = this.value;
+      const typeSelect = document.getElementById("machine-type");
+      
+      // 選択されたジャンルに応じて機種タイプの選択肢を動的に変更
+      if (genre === "pachinko") {
+        typeSelect.innerHTML = `
+          <option value="">選択してください</option>
+          <option value="デジパチ">デジパチ</option>
+          <option value="1種2種混合">1種2種混合</option>
+          <option value="羽根もの">羽根もの</option>
+        `;
+      } else { // pachislot の場合
+        typeSelect.innerHTML = `
+          <option value="">選択してください</option>
+          <option value="スマスロ">スマスロ</option>
+          <option value="AT">AT</option>
+          <option value="Aタイプ">Aタイプ</option>
+        `;
+      }
+    });
+
+    // 機種名入力欄でのサジェスト機能
+    const machineInput = document.getElementById("machine-name");
+    const suggestionsBox = document.getElementById("suggestions");
+
+    machineInput.addEventListener("input", function() {
+      const rawInput = this.value.trim();
+      const input = normalizeName(resolveAlias(rawInput)); // 入力値を正規化・略称解決
+      suggestionsBox.innerHTML = ""; // サジェストボックスをクリア
+      
+      if (!input || input.length < 1) return; // 入力が短い場合は処理しない
+
+      const selectedGenre = document.getElementById("machine-genre").value; // 現在選択されているジャンル
+      const all = [...baseMachines, ...userMachines]; // 全ての機種リスト
+
+      // 選択ジャンルに基づいて機種をフィルタリング
+      const genreFiltered = all.filter(m => !m.genre || m.genre === selectedGenre);
+      // 入力値に部分一致する機種をフィルタリング
+      const matches = genreFiltered.filter(m => normalizeName(m.name).includes(input));
+
+      if (matches.length === 0) {
+        // 一致する機種がない場合、新規登録を促すメッセージを表示
+        const div = document.createElement("div");
+        div.style.color = "#888";
+        div.style.fontStyle = "italic";
+        div.textContent = `"${rawInput}" を新規登録`;
+        suggestionsBox.appendChild(div);
+        return;
+      }
+
+      // 上位10件のサジェストを表示
+      matches.slice(0, 10).forEach(m => {
+        const div = document.createElement("div");
+        // ジャンルに応じてアイコンを切り替え
+        const genreIcon = m.genre === 'pachinko' ? '🎯' : '🎰';
+        div.textContent = `${genreIcon} ${m.name}（${m.type}）`;
+        div.onclick = () => {
+          machineInput.value = m.name; // 選択された機種名を入力欄にセット
+          document.getElementById("machine-genre").value = m.genre || 'pachislot'; // ジャンルをセット
+          document.getElementById("machine-genre").dispatchEvent(new Event('change')); // ジャンル変更イベントを発火させて機種タイプを更新
+          document.getElementById("machine-type").value = m.type; // 機種タイプをセット
+          suggestionsBox.innerHTML = ""; // サジェストボックスを閉じる
+          // 既に登録されている機種を選択した場合、警告メッセージを表示
+          showAlert("warning", "⚠️ この機種は既に登録されています (DMMデータまたはユーザー追加済み)");
+        };
+        suggestionsBox.appendChild(div);
+      });
+    });
+
+    // 入力欄からフォーカスが外れたら、少し遅れてサジェストボックスを閉じる
+    machineInput.addEventListener("blur", () => {
+      setTimeout(() => suggestionsBox.innerHTML = "", 200);
+    });
+
+    // フォーム送信時の処理
+    document.getElementById("register-form").addEventListener("submit", function(e) {
+      e.preventDefault(); // デフォルトのフォーム送信を防止
+
+      const name = document.getElementById("machine-name").value.trim();
+      const type = document.getElementById("machine-type").value;
+      const genre = document.getElementById("machine-genre").value;
+
+      // 未入力項目があるかチェック
+      if (!name || !type || !genre) {
+        showAlert("danger", "❌ すべての項目を入力してください");
+        return;
+      }
+
+      // 機種が既に登録済みかチェック
+      if (isDuplicate(name)) {
+        showAlert("danger", "❌ この機種は既に登録されています");
+        return;
+      }
+
+      // 新しい機種をユーザー追加機種リストに追加
+      userMachines.push({ name, type, genre });
+      localStorage.setItem("userMachines", JSON.stringify(userMachines)); // ローカルストレージに保存
+
+      // 成功メッセージを表示し、フォームをリセット
+      const genreIcon = genre === 'pachinko' ? '🎯' : '🎰';
+      showAlert("success", `✅ ${genreIcon} ${name} を登録しました！`);
+      document.getElementById("register-form").reset();
+      updateUserMachineList(); // ユーザー機種リスト表示を更新
+      updateStats(); // 統計情報を更新
+    });
+
+    // ------------------------------
+    // 🖥️ UI更新関数
+    // ------------------------------
+
+    /**
+     * ユーザーが追加した機種のリストを表示エリアにレンダリングする関数
+     */
+    function updateUserMachineList() {
+      const list = document.getElementById("user-machine-list");
+      list.innerHTML = ""; // 既存リストをクリア
+
+      if (userMachines.length === 0) {
+        // 登録機種がない場合のメッセージ
+        list.innerHTML = '<p style="text-align: center; color: #999;">まだ機種が登録されていません</p>';
+        return;
+      }
+
+      // 各ユーザー追加機種をリストアイテムとして表示
+      userMachines.forEach((machine, index) => {
+        const div = document.createElement("div");
+        div.className = "machine-item";
+        const genreIcon = machine.genre === 'pachinko' ? '🎯' : '🎰';
+        div.innerHTML = `
+          <div class="machine-info">
+            <div class="machine-name">${genreIcon} ${machine.name}</div>
+            <span class="machine-type">${machine.type}</span>
+          </div>
+          <button class="btn-delete" onclick="deleteMachine(${index})">削除</button>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    /**
+     * 指定されたインデックスの機種をユーザー追加機種リストから削除する関数
+     * @param {number} index - 削除する機種の配列インデックス
+     */
+    function deleteMachine(index) {
+      // 削除確認
+      if (confirm(`${userMachines[index].name} を削除しますか？`)) {
+        userMachines.splice(index, 1); // 配列から削除
+        localStorage.setItem("userMachines", JSON.stringify(userMachines)); // ローカルストレージを更新
+        showAlert("success", "✅ 削除しました"); // 成功メッセージ
+        updateUserMachineList(); // リスト表示を更新
+        updateStats(); // 統計情報を更新
+      }
+    }
+
+    /**
+     * 全てのユーザー追加機種を削除する関数
+     */
+    function clearAllUserMachines() {
+      // 全削除確認
+      if (confirm("本当にすべてのユーザー登録機種を削除しますか？")) {
+        userMachines = []; // 配列を空にする
+        localStorage.setItem("userMachines", JSON.stringify(userMachines)); // ローカルストレージを更新
+        showAlert("success", "✅ すべての機種を削除しました"); // 成功メッセージ
+        updateUserMachineList(); // リスト表示を更新
+        updateStats(); // 統計情報を更新
+      }
+    }
+
+    /**
+     * 登録済み機種数、ユーザー追加機種数、合計機種数を表示する統計情報を更新する関数
+     */
+    function updateStats() {
+      document.getElementById("base-count").textContent = baseMachines.length;
+      document.getElementById("user-count").textContent = userMachines.length;
+      document.getElementById("total-count").textContent = baseMachines.length + userMachines.length;
+    }
+
+    /**
+     * アラートメッセージを表示する関数
+     * @param {string} type - アラートの種類 ('success', 'danger', 'warning')
+     * @param {string} message - 表示するメッセージ
+     */
+    function showAlert(type, message) {
+      const alertArea = document.getElementById("alert-area");
+      const alert = document.createElement("div");
+      alert.className = `alert alert-${type}`; // CSSクラスを設定
+      alert.textContent = message;
+      alertArea.appendChild(alert);
+
+      // 3秒後にアラートを自動的に削除
+      setTimeout(() => alert.remove(), 3000);
+    }
+
+    // ------------------------------
+    // 🚀 初期表示処理
+    // ------------------------------
+    updateUserMachineList(); // ユーザー追加機種リストを初期表示
+    updateStats(); // 統計情報を初期表示
+  </script>
+</body>
+</html>

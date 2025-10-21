@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>家計簿アプリ - カテゴリ管理</title>
+  <link rel="stylesheet" href="style.css"> <!-- 共通スタイルを適用 -->
+  <style>
+    /* カテゴリ管理ページ専用のスタイル */
+    /* .category-section は style.css に移動 */
+
+    /* .category-tabs は style.css に移動 */
+    /* .category-tab は style.css に移動 */
+
+    .add-category-form {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .add-category-form input {
+      flex-grow: 1;
+    }
+
+    /* .category-list は style.css に移動 */
+
+    /* .category-item は style.css に移動 */
+
+    .category-item .category-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .category-item .category-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    /* .category-item .btn-small は style.css に移動 */
+
+    .category-item .btn-edit {
+        background: #3498db; /* 青 */
+        color: white;
+    }
+
+    .category-item .btn-delete {
+        background: #e74c3c; /* 赤 */
+        color: white;
+    }
+
+    /* 編集モード用のスタイル */
+    .category-item.editing input {
+        flex-grow: 1;
+        margin-right: 10px;
+        padding: 8px 12px;
+        border: 1px solid #4CAF50;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+    .category-item.editing .category-name {
+        display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🏷️ カテゴリ管理</h1>
+      <p>収支のカテゴリを自由に設定しましょう</p>
+      <!-- ナビゲーションリンク -->
+      <div class="nav-links">
+        <a href="index.html" class="nav-link">🏠 ホーム</a>
+        <a href="calendar.html" class="nav-link">📅 カレンダー</a>
+        <a href="graph.html" class="nav-link">📊 グラフ</a>
+        <a href="pachinko_index.html" class="nav-link">🎰 パチスロ収支</a>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="category-section">
+        <h2>カテゴリタイプを選択</h2>
+        <div class="category-tabs">
+          <div class="category-tab active" data-type="expense">支出カテゴリ</div>
+          <div class="category-tab" data-type="income">収入カテゴリ</div>
+        </div>
+      </div>
+
+      <div class="category-section">
+        <h2>新しいカテゴリを追加</h2>
+        <form id="add-category-form" class="add-category-form">
+          <input type="text" id="new-category-name" placeholder="新しいカテゴリ名" required>
+          <button type="submit" class="btn btn-small">追加</button>
+        </form>
+      </div>
+
+      <div class="category-section">
+        <h2>カテゴリリスト</h2>
+        <ul id="category-list" class="category-list">
+          <!-- カテゴリはJavaScriptで動的に追加されます -->
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const CATEGORY_STORAGE_KEY = 'household_account_book_categories';
+    let currentCategoryType = 'expense'; // 'expense' or 'income'
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadCategories();
+      renderCategories();
+
+      document.querySelectorAll('.category-tab').forEach(tab => {
+        tab.addEventListener('click', (event) => {
+          document.querySelector('.category-tab.active').classList.remove('active');
+          event.target.classList.add('active');
+          currentCategoryType = event.target.dataset.type;
+          renderCategories();
+        });
+      });
+
+      document.getElementById('add-category-form').addEventListener('submit', (event) => {
+        event.preventDefault();
+        const newCategoryNameInput = document.getElementById('new-category-name');
+        const newCategoryName = newCategoryNameInput.value.trim();
+        if (newCategoryName) {
+          addCategory(newCategoryName, currentCategoryType);
+          newCategoryNameInput.value = '';
+        }
+      });
+    });
+
+    function getCategories() {
+      const categoriesJson = localStorage.getItem(CATEGORY_STORAGE_KEY);
+      return categoriesJson ? JSON.parse(categoriesJson) : { income: [], expense: [] };
+    }
+
+    function saveCategories(categories) {
+      localStorage.setItem(CATEGORY_STORAGE_KEY, JSON.stringify(categories));
+    }
+
+    function loadCategories() {
+      const categories = getCategories();
+      // デフォルトカテゴリが存在しない場合に設定
+      if (categories.expense.length === 0 && categories.income.length === 0) {
+        categories.expense = [
+          { id: Date.now(), name: '食費' },
+          { id: Date.now() + 1, name: '交通費' },
+          { id: Date.now() + 2, name: '娯楽費' },
+          { id: Date.now() + 3, name: '日用品' }
+        ];
+        categories.income = [
+          { id: Date.now() + 4, name: '給与' },
+          { id: Date.now() + 5, name: '臨時収入' }
+        ];
+        saveCategories(categories);
+      }
+    }
+
+    function renderCategories() {
+      const categoryList = document.getElementById('category-list');
+      categoryList.innerHTML = ''; // リストをクリア
+
+      const categories = getCategories();
+      const currentTypeCategories = categories[currentCategoryType];
+
+      if (currentTypeCategories.length === 0) {
+        const emptyItem = document.createElement('li');
+        emptyItem.textContent = `現在、${currentCategoryType === 'expense' ? '支出' : '収入'}カテゴリは登録されていません。`;
+        emptyItem.style.textAlign = 'center';
+        emptyItem.style.color = '#777';
+        emptyItem.style.padding = '20px';
+        categoryList.appendChild(emptyItem);
+        return;
+      }
+
+      currentTypeCategories.forEach(category => {
+        const listItem = document.createElement('li');
+        listItem.classList.add('category-item');
+        listItem.dataset.id = category.id;
+        // カテゴリリストのアイテムにはborder-leftがないため、削除
+        listItem.style.borderLeft = 'none';
+
+        listItem.innerHTML = `
+          <span class="category-name">${category.name}</span>
+          <div class="category-actions">
+            <button class="btn btn-small btn-edit">編集</button>
+            <button class="btn btn-small btn-delete">削除</button>
+          </div>
+        `;
+        categoryList.appendChild(listItem);
+      });
+
+      addCategoryEventListeners();
+    }
+
+    function addCategoryEventListeners() {
+      document.querySelectorAll('.btn-edit').forEach(button => {
+        button.addEventListener('click', (event) => {
+          const listItem = event.target.closest('.category-item');
+          toggleEditMode(listItem);
+        });
+      });
+
+      document.querySelectorAll('.btn-delete').forEach(button => {
+        button.addEventListener('click', (event) => {
+          const listItem = event.target.closest('.category-item');
+          deleteCategory(listItem.dataset.id, currentCategoryType);
+        });
+      });
+    }
+
+    function toggleEditMode(listItem) {
+        if (listItem.classList.contains('editing')) {
+            // 編集モードから通常モードへ (保存)
+            const input = listItem.querySelector('input[type="text"]');
+            const newName = input.value.trim();
+            if (newName) {
+                updateCategory(listItem.dataset.id, newName, currentCategoryType);
+            }
+            listItem.classList.remove('editing');
+            renderCategories(); // 更新後に再描画
+        } else {
+            // 通常モードから編集モードへ
+            listItem.classList.add('editing');
+            const categoryNameSpan = listItem.querySelector('.category-name');
+            const currentName = categoryNameSpan.textContent;
+
+            const inputField = document.createElement('input');
+            inputField.type = 'text';
+            inputField.value = currentName;
+
+            const saveButton = document.createElement('button');
+            saveButton.classList.add('btn', 'btn-small', 'btn-edit');
+            saveButton.textContent = '保存';
+            saveButton.addEventListener('click', () => {
+                const newName = inputField.value.trim();
+                if (newName) {
+                    updateCategory(listItem.dataset.id, newName, currentCategoryType);
+                }
+                listItem.classList.remove('editing');
+                renderCategories(); // 保存後に再描画
+            });
+
+            const cancelButton = document.createElement('button');
+            cancelButton.classList.add('btn', 'btn-small', 'btn-delete'); // デザイン流用
+            cancelButton.textContent = 'キャンセル';
+            cancelButton.addEventListener('click', () => {
+                listItem.classList.remove('editing');
+                renderCategories(); // キャンセル後に再描画
+            });
+
+            const categoryActionsDiv = listItem.querySelector('.category-actions');
+            categoryActionsDiv.innerHTML = ''; // 既存のボタンをクリア
+            listItem.insertBefore(inputField, categoryActionsDiv);
+            categoryActionsDiv.appendChild(saveButton);
+            categoryActionsDiv.appendChild(cancelButton);
+
+            inputField.focus();
+        }
+    }
+
+
+    function addCategory(name, type) {
+      const categories = getCategories();
+      const newCategory = {
+        id: Date.now(), // ユニークなIDを生成
+        name: name
+      };
+      categories[type].push(newCategory);
+      saveCategories(categories);
+      renderCategories();
+    }
+
+    function updateCategory(id, newName, type) {
+      const categories = getCategories();
+      const index = categories[type].findIndex(cat => cat.id == id);
+      if (index !== -1) {
+        categories[type][index].name = newName;
+        saveCategories(categories);
+      }
+    }
+
+    function deleteCategory(id, type) {
+      if (!confirm('このカテゴリを削除しますか？\nこのカテゴリを使用している収支記録は影響を受けません。')) {
+        return;
+      }
+      const categories = getCategories();
+      categories[type] = categories[type].filter(cat => cat.id != id);
+      saveCategories(categories);
+      renderCategories();
+    }
+
+  </script>
+</body>
+</html>

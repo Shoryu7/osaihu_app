@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>家計簿アプリ - グラフ</title>
+  <link rel="stylesheet" href="style.css"> <!-- 共通スタイルを適用 -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Chart.jsをCDNで読み込み -->
+  <style>
+    /* グラフページ専用のスタイル */
+    /* .graph-section は style.css に移動 */
+
+    /* .filter-tabs は style.css に移動 */
+    /* .filter-tab は style.css に移動 */
+
+    .period-selector {
+        margin-bottom: 20px;
+    }
+
+    .period-selector select {
+        width: calc(100% - 20px); /* 左右の余白を考慮 */
+        max-width: 300px;
+        padding: 10px 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        font-size: 16px;
+        background-color: white;
+    }
+
+    .chart-container, .bar-chart-container {
+      position: relative;
+      width: 100%;
+      max-width: 500px; /* ドーナツチャートの最大幅 */
+      margin: 20px auto;
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+
+    .bar-chart-container {
+      max-width: 700px; /* 棒グラフの最大幅 */
+      height: 300px; /* 棒グラフの高さ */
+    }
+
+    .summary-box {
+        background: white;
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        margin-top: 20px;
+        text-align: left;
+    }
+
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    .summary-item:last-child {
+        border-bottom: none;
+    }
+
+    .summary-label {
+        font-weight: 600;
+        color: #555;
+    }
+
+    .summary-value {
+        font-weight: 700;
+        font-size: 18px;
+    }
+
+    .summary-value.income { color: #4CAF50; }
+    .summary-value.expense { color: #FF5722; }
+    .summary-value.balance {
+        color: #3498db; /* 青 */
+        font-size: 20px;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📊 グラフ</h1>
+      <p>収支の傾向をグラフで確認しましょう</p>
+      <!-- ナビゲーションリンク -->
+      <div class="nav-links">
+        <a href="index.html" class="nav-link">🏠 ホーム</a>
+        <a href="calendar.html" class="nav-link">📅 カレンダー</a>
+        <a href="category_manager.html" class="nav-link">🏷️ カテゴリ管理</a>
+        <a href="pachinko_index.html" class="nav-link">🎰 パチスロ収支</a>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="graph-section">
+        <h2>🗓️ 表示期間</h2>
+        <div class="period-selector">
+            <select id="month-selector"></select>
+        </div>
+      </div>
+
+      <div class="graph-section">
+        <h2>💰 月間サマリー</h2>
+        <div class="summary-box">
+            <div class="summary-item">
+                <span class="summary-label">収入合計:</span>
+                <span class="summary-value income" id="total-income">0円</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-label">支出合計:</span>
+                <span class="summary-value expense" id="total-expense">0円</span>
+            </div>
+            <div class="summary-item" style="border-top: 2px solid #eee; margin-top: 10px; padding-top: 10px;">
+                <span class="summary-label">差引残高:</span>
+                <span class="summary-value balance" id="balance">0円</span>
+            </div>
+        </div>
+      </div>
+
+      <div class="graph-section">
+        <h2>📉 支出内訳</h2>
+        <div class="chart-container">
+          <canvas id="expenseDoughnutChart"></canvas>
+        </div>
+      </div>
+
+      <div class="graph-section">
+        <h2>📈 収入内訳</h2>
+        <div class="chart-container">
+          <canvas id="incomeDoughnutChart"></canvas>
+        </div>
+      </div>
+
+      <div class="graph-section">
+        <h2>📊 過去6ヶ月の収支推移</h2>
+        <div class="bar-chart-container">
+            <canvas id="monthlyBalanceBarChart"></canvas>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'household_account_book_transactions';
+    const CATEGORY_STORAGE_KEY = 'household_account_book_categories';
+    let expenseDoughnutChart;
+    let incomeDoughnutChart;
+    let monthlyBalanceBarChart;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      populateMonthSelector();
+      document.getElementById('month-selector').addEventListener('change', renderCharts);
+      renderCharts(); // 初回描画
+    });
+
+    function getTransactions() {
+      const transactionsJson = localStorage.getItem(STORAGE_KEY);
+      return transactionsJson ? JSON.parse(transactionsJson) : [];
+    }
+
+    function getCategories() {
+        const categoriesJson = localStorage.getItem(CATEGORY_STORAGE_KEY);
+        return categoriesJson ? JSON.parse(categoriesJson) : { income: [], expense: [] };
+    }
+
+    function populateMonthSelector() {
+        const selector = document.getElementById('month-selector');
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const currentMonth = today.getMonth(); // 0-indexed
+
+        for (let i = 0; i < 12; i++) { // 過去1年分の月を表示
+            const date = new Date(currentYear, currentMonth - i, 1);
+            const year = date.getFullYear();
+            const month = date.getMonth() + 1;
+            const value = `${year}-${String(month).padStart(2, '0')}`;
+            const text = `${year}年${month}月`;
+
+            const option = document.createElement('option');
+            option.value = value;
+            option.textContent = text;
+            if (i === 0) { // デフォルトで今月を選択
+                option.selected = true;
+            }
+            selector.appendChild(option);
+        }
+    }
+
+    function renderCharts() {
+      const selectedMonth = document.getElementById('month-selector').value; // 例: "2023-11"
+      const transactions = getTransactions();
+      const categories = getCategories();
+
+      // 月間サマリーとドーナツチャート用のデータ準備
+      const filteredTransactions = transactions.filter(t => t.date.startsWith(selectedMonth));
+
+      const totalIncome = filteredTransactions
+        .filter(t => t.type === 'income')
+        .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+
+      const totalExpense = filteredTransactions
+        .filter(t => t.type === 'expense')
+        .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+
+      document.getElementById('total-income').textContent = `${totalIncome.toLocaleString()}円`;
+      document.getElementById('total-expense').textContent = `${totalExpense.toLocaleString()}円`;
+      const balance = totalIncome - totalExpense;
+      document.getElementById('balance').textContent = `${balance.toLocaleString()}円`;
+      if (balance >= 0) {
+        document.getElementById('balance').style.color = '#3498db'; // 青
+      } else {
+        document.getElementById('balance').style.color = '#e74c3c'; // 赤
+      }
+
+
+      // 支出内訳データ
+      const expenseCategoryMap = {};
+      categories.expense.forEach(cat => expenseCategoryMap[cat.name] = 0); // 全カテゴリを0で初期化
+
+      filteredTransactions.filter(t => t.type === 'expense').forEach(t => {
+        if (expenseCategoryMap[t.mainCategory] !== undefined) {
+          expenseCategoryMap[t.mainCategory] += parseFloat(t.amount);
+        } else {
+          // 未定義カテゴリの場合、その他として集計するか、新規カテゴリとして追加 (今回は既存カテゴリのみ)
+          // console.warn(`Undefined expense category: ${t.mainCategory}`);
+        }
+      });
+      const expenseLabels = Object.keys(expenseCategoryMap);
+      const expenseData = Object.values(expenseCategoryMap);
+
+      // 収入内訳データ
+      const incomeCategoryMap = {};
+      categories.income.forEach(cat => incomeCategoryMap[cat.name] = 0); // 全カテゴリを0で初期化
+
+      filteredTransactions.filter(t => t.type === 'income').forEach(t => {
+        if (incomeCategoryMap[t.mainCategory] !== undefined) {
+          incomeCategoryMap[t.mainCategory] += parseFloat(t.amount);
+        } else {
+          // console.warn(`Undefined income category: ${t.mainCategory}`);
+        }
+      });
+      const incomeLabels = Object.keys(incomeCategoryMap);
+      const incomeData = Object.values(incomeCategoryMap);
+
+      // グラフ描画
+      drawDoughnutChart('expenseDoughnutChart', '支出内訳', expenseLabels, expenseData, getCategoryColors(expenseLabels));
+      drawDoughnutChart('incomeDoughnutChart', '収入内訳', incomeLabels, incomeData, getCategoryColors(incomeLabels, true));
+
+      drawMonthlyBalanceBarChart();
+    }
+
+    function drawDoughnutChart(canvasId, title, labels, data, colors) {
+      const ctx = document.getElementById(canvasId).getContext('2d');
+
+      // 既存のチャートがあれば破棄
+      if (canvasId === 'expenseDoughnutChart' && expenseDoughnutChart) {
+        expenseDoughnutChart.destroy();
+      } else if (canvasId === 'incomeDoughnutChart' && incomeDoughnutChart) {
+        incomeDoughnutChart.destroy();
+      }
+
+      const chartConfig = {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: data,
+            backgroundColor: colors,
+            hoverOffset: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'right',
+              labels: {
+                font: {
+                  size: 14
+                }
+              }
+            },
+            title: {
+              display: true,
+              text: title,
+              font: {
+                size: 18,
+                weight: 'bold'
+              }
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        let label = context.label || '';
+                        if (label) {
+                            label += ': ';
+                        }
+                        if (context.parsed !== null) {
+                            label += new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(context.parsed);
+                        }
+                        return label;
+                    }
+                }
+            }
+          }
+        }
+      };
+
+      if (canvasId === 'expenseDoughnutChart') {
+        expenseDoughnutChart = new Chart(ctx, chartConfig);
+      } else if (canvasId === 'incomeDoughnutChart') {
+        incomeDoughnutChart = new Chart(ctx, chartConfig);
+      }
+    }
+
+    function getCategoryColors(labels, isIncome = false) {
+        // 色のセット (カテゴリが多い場合はもっと増やす)
+        const expenseColors = [
+            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#E7E9ED',
+            '#C9CBCE', '#F7464A', '#46BFBD', '#FDB45C', '#949FB1', '#ACD683', '#66CCFF'
+        ];
+        const incomeColors = [
+            '#4CAF50', '#8BC34A', '#AED581', '#66BB6A', '#81C784', '#C8E6C9', '#A5D6A7'
+        ];
+        const colors = isIncome ? incomeColors : expenseColors;
+        const assignedColors = [];
+        labels.forEach((label, index) => {
+            assignedColors.push(colors[index % colors.length]);
+        });
+        return assignedColors;
+    }
+
+
+    function drawMonthlyBalanceBarChart() {
+        const ctx = document.getElementById('monthlyBalanceBarChart').getContext('2d');
+        if (monthlyBalanceBarChart) {
+            monthlyBalanceBarChart.destroy();
+        }
+
+        const transactions = getTransactions();
+        const monthlyData = {}; // { "YYYY-MM": { income: 0, expense: 0 } }
+
+        // 過去6ヶ月分のデータを集計
+        const today = new Date();
+        const months = [];
+        for (let i = 5; i >= 0; i--) { // 過去5ヶ月 + 今月 = 6ヶ月
+            const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const ym = `${year}-${month}`;
+            months.push(ym);
+            monthlyData[ym] = { income: 0, expense: 0 };
+        }
+
+        transactions.forEach(t => {
+            const ym = t.date.substring(0, 7); // "YYYY-MM"
+            if (monthlyData[ym]) {
+                if (t.type === 'income') {
+                    monthlyData[ym].income += parseFloat(t.amount);
+                } else {
+                    monthlyData[ym].expense += parseFloat(t.amount);
+                }
+            }
+        });
+
+        const labels = months.map(ym => ym.replace('-', '年') + '月');
+        const incomeDatasets = months.map(ym => monthlyData[ym].income);
+        const expenseDatasets = months.map(ym => monthlyData[ym].expense);
+        const balanceDatasets = months.map(ym => monthlyData[ym].income - monthlyData[ym].expense);
+
+        monthlyBalanceBarChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: '収入',
+                        data: incomeDatasets,
+                        backgroundColor: '#8BC34A', // income color
+                        stack: 'combined',
+                        order: 1 // 収入が下に来るように
+                    },
+                    {
+                        label: '支出',
+                        data: expenseDatasets.map(val => -val), // 支出は負の値で表示
+                        backgroundColor: '#FF5722', // expense color
+                        stack: 'combined',
+                        order: 2 // 支出が上に来るように
+                    },
+                    {
+                        type: 'line', // 残高は線グラフで表示
+                        label: '残高',
+                        data: balanceDatasets,
+                        borderColor: '#3498db', // balance color
+                        backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                        fill: false,
+                        tension: 0.3,
+                        yAxisID: 'balance-y-axis', // 別のY軸を使用
+                        order: 0 // 最前面に表示
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: '月ごとの収入・支出・残高',
+                        font: {
+                            size: 18,
+                            weight: 'bold'
+                        }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(Math.abs(context.parsed.y));
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        stacked: true
+                    },
+                    y: {
+                        stacked: true,
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: '金額 (円)'
+                        },
+                        ticks: {
+                            callback: function(value, index, values) {
+                                return new Intl.NumberFormat('ja-JP').format(Math.abs(value)); // 負の記号を非表示
+                            }
+                        }
+                    },
+                    'balance-y-axis': { // 残高用のY軸
+                        position: 'right', // 右側に表示
+                        grid: {
+                            drawOnChartArea: false // グラフエリアにはグリッド線を描画しない
+                        },
+                        title: {
+                            display: true,
+                            text: '残高 (円)'
+                        },
+                        ticks: {
+                            callback: function(value, index, values) {
+                                return new Intl.NumberFormat('ja-JP').format(value);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+  </script>
+</body>
+</html>
