@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>パチンコ・パチスロ 収支グラフ</title>
-  <!-- Chart.js ライブラリの読み込み -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     /* 全体的なリセット */
@@ -83,19 +82,41 @@
       box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
     }
 
-    /* グラフを囲むコンテナのスタイル: 高さと幅を調整してレスポンシブにする */
+    /* グラフを囲むコンテナのスタイル */
     .chart-container {
       position: relative;
-      height: 60vh; /* ビューポートの高さの60%に設定 */
+      height: 400px; /* デスクトップでの初期高さを固定に */
       width: 100%;
       margin: 20px 0;
     }
     
     /* Chart.js の canvas 要素のスタイル */
     #incomeChart {
-      /* heightとwidthを100%にすることで親要素に合わせる */
       height: 100% !important; 
       width: 100% !important;
+    }
+
+    /* スマートフォンでの表示調整 */
+    @media (max-width: 768px) {
+      .content {
+        padding: 15px;
+      }
+      .control-group {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .control-group-label {
+        min-width: auto;
+        margin-bottom: 10px;
+        text-align: center;
+      }
+      .chart-container {
+        height: 300px; /* スマホでは少し高さを抑える */
+      }
+      .control-btn {
+        flex: 1 1 auto; /* 小画面でボタンが横幅いっぱいに広がるように */
+        min-width: 100px; /* ボタンの最小幅 */
+      }
     }
   </style>
 </head>

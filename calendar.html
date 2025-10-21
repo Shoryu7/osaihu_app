@@ -4,8 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>家計簿アプリ - カレンダー</title>
-  <link rel="stylesheet" href="style.css"> <!-- 共通スタイルを適用 -->
-  <style>
+  <link rel="stylesheet" href="style.css"> <style>
     /* カレンダー専用のスタイル */
     .calendar-container {
       /* form-section のスタイルを適用 */
@@ -14,6 +13,10 @@
       border-radius: 15px;
       margin-bottom: 30px;
       text-align: center;
+      /* 追加: コンテナの最大幅を設定し、中央寄せにする */
+      max-width: 100%; /* 親要素の幅に合わせて最大に */
+      margin-left: auto;
+      margin-right: auto;
     }
 
     .calendar-header {
@@ -44,7 +47,7 @@
     .calendar-grid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
-      gap: 5px;
+      gap: 5px; /* ここは残しておく */
     }
 
     .calendar-grid div {
@@ -238,22 +241,30 @@
 
     /* スマートフォンでの表示調整 */
     @media (max-width: 600px) {
+        .calendar-container {
+            padding: 15px; /* パディングを少し減らす */
+        }
+        .calendar-grid {
+            gap: 2px; /* セル間の隙間をさらに狭める */
+        }
         .calendar-grid div {
             padding: 5px 2px;
-            min-height: 60px;
+            min-height: 50px; /* 高さを少し詰める */
         }
         .calendar-grid div .date-number {
-            font-size: 14px;
+            font-size: 12px; /* 少し小さく */
+            margin-bottom: 2px;
         }
         .calendar-grid div .income-badge, .calendar-grid div .expense-badge {
-            font-size: 9px;
-            padding: 1px 3px;
+            font-size: 7px; /* バッジを小さく */
+            padding: 1px 2px;
+            width: calc(100% - 4px); /* パディングを考慮 */
         }
         .calendar-header h2 {
-            font-size: 20px;
+            font-size: 18px; /* 月表示の文字サイズも調整 */
         }
         .calendar-header button {
-            font-size: 20px;
+            font-size: 18px; /* ボタンの文字サイズも調整 */
         }
         #daily-history-list li {
             flex-direction: column;
@@ -301,15 +312,13 @@
           <div class="day-name">木</div>
           <div class="day-name">金</div>
           <div class="day-name saturday">土</div>
-          <!-- 日付はJavaScriptで動的に生成 -->
-        </div>
+          </div>
       </div>
 
       <div class="selected-date-transactions">
         <h3 id="selected-date-title">選択された日付: -</h3>
         <ul id="daily-history-list">
-          <!-- 選択された日付の収支がここに表示される -->
-        </ul>
+          </ul>
         <p id="no-transactions-message" class="no-transactions" style="display: none;">この日の収支はありません。</p>
       </div>
     </div>

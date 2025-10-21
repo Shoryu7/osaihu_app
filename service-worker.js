@@ -11,7 +11,11 @@ const urlsToCache = [
   './calendar.html',
   './graph.html',
   './category_manager.html',
-  './pachinko_index.html'
+  './pachinko_index.html',
+  './pachinko_graph.html', // 追加
+  './pachinko_gacha.html', // 追加
+  './register.html', // 追加
+  './pachinko_graph.js' // 追加
 ];
 
 self.addEventListener('install', (event) => {

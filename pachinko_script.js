@@ -1,3 +1,5 @@
+// pachinko_script.js
+
 // ------------------------------
 // 🔧 初期データ読み込み
 // ------------------------------
@@ -348,11 +350,12 @@ document.getElementById("income-form").addEventListener("submit", function (e) {
   const diff = returnAmount - investment; // 収支計算
 
   const data = {
+    id: Date.now(), // 履歴編集・削除用にIDを追加
     date: document.getElementById("date").value, // 日付
     machine: machineName,
     genre: genre,
     investment: investment,
-    return: returnAmount,
+    return: returnAmount, // キー名を 'return' に統一
     diff: diff
   };
 
@@ -383,6 +386,8 @@ document.getElementById("income-form").addEventListener("submit", function (e) {
     categoriesData.expense.push({ id: Date.now() + Math.random(), name: 'パチンコ・パチスロ' });
     localStorage.setItem('household_account_book_categories', JSON.stringify(categoriesData));
   }
+  // incomeにも同様のチェックを入れることも可能だが、今回はexpenseのみでOK
+  
   // 家計簿への連携処理ここまで ----------------------------------------------------------
 
   // フォームをリセット
@@ -415,7 +420,7 @@ function showHistory() {
   // 履歴を新しい順に表示するために逆順にループ
   history.slice().reverse().forEach((item, index) => {
     // 実際の配列インデックスを計算 (reverseされる前の位置)
-    const actualIndex = history.length - 1 - index; 
+    const originalIndex = history.length - 1 - index; 
     const li = document.createElement("li");
     li.className = `history-item ${item.diff >= 0 ? 'positive' : 'negative'}`; // 収支に応じてクラスを設定
     
@@ -431,8 +436,8 @@ function showHistory() {
         収支: ${diffText}
       </div>
       <div class="history-buttons">
-        <button class="btn-small btn-edit" onclick="editHistory(${actualIndex})">✏️ 編集</button>
-        <button class="btn-small btn-delete" onclick="deleteHistory(${actualIndex})">🗑️ 削除</button>
+        <button class="btn-small btn-edit" onclick="editHistory(${originalIndex})">✏️ 編集</button>
+        <button class="btn-small btn-delete" onclick="deleteHistory(${originalIndex})">🗑️ 削除</button>
       </div>
     `;
     
@@ -477,7 +482,7 @@ function editHistory(index) {
  */
 function deleteHistory(index) {
   if (confirm("この履歴を削除しますか？")) { // 削除確認
-    const history = JSON.parse(localStorage.getItem("history") || "[]");
+    let history = JSON.parse(localStorage.getItem("history") || "[]");
     const deletedItem = history[index]; // 削除されるアイテム
 
     // 家計簿の履歴からも削除

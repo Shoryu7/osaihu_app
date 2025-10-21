@@ -4,9 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>家計簿アプリ - グラフ</title>
-  <link rel="stylesheet" href="style.css"> <!-- 共通スタイルを適用 -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Chart.jsをCDNで読み込み -->
-  <style>
+  <link rel="stylesheet" href="style.css"> <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <style>
     /* グラフページ専用のスタイル */
     /* .graph-section は style.css に移動 */
 
@@ -31,6 +29,7 @@
       position: relative;
       width: 100%;
       max-width: 500px; /* ドーナツチャートの最大幅 */
+      height: 350px; /* ドーナツチャートの高さ */
       margin: 20px auto;
       background: white;
       padding: 15px;
@@ -40,7 +39,7 @@
 
     .bar-chart-container {
       max-width: 700px; /* 棒グラフの最大幅 */
-      height: 300px; /* 棒グラフの高さ */
+      height: 400px; /* 棒グラフの高さ */
     }
 
     .summary-box {
@@ -80,6 +79,19 @@
         font-size: 20px;
     }
 
+    /* レスポンシブデザイン */
+    @media (max-width: 768px) {
+        .chart-container, .bar-chart-container {
+            height: 300px; /* スマートフォンでの高さを調整 */
+            padding: 10px;
+        }
+    }
+    @media (max-width: 480px) {
+        .chart-container, .bar-chart-container {
+            height: 250px; /* さらに小さなスマートフォンでの高さを調整 */
+        }
+    }
+
   </style>
 </head>
 <body>
@@ -87,7 +99,6 @@
     <div class="header">
       <h1>📊 グラフ</h1>
       <p>収支の傾向をグラフで確認しましょう</p>
-      <!-- ナビゲーションリンク -->
       <div class="nav-links">
         <a href="index.html" class="nav-link">🏠 ホーム</a>
         <a href="calendar.html" class="nav-link">📅 カレンダー</a>
@@ -438,7 +449,15 @@
                 },
                 scales: {
                     x: {
-                        stacked: true
+                        stacked: true,
+                        ticks: {
+                           autoSkip: true,
+                           maxRotation: 0,
+                           minRotation: 0,
+                           font: {
+                               size: 10
+                           }
+                        }
                     },
                     y: {
                         stacked: true,

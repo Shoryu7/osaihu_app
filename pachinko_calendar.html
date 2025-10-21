@@ -233,6 +233,45 @@
       font-size: 14px;
       opacity: 0.9;
     }
+    
+    /* ここから修正 (追加) */
+    @media (max-width: 768px) {
+        body { padding: 10px; }
+        .content { padding: 15px; }
+        .calendar-header {
+            flex-direction: column;
+            gap: 15px;
+            padding: 15px;
+        }
+        .current-month { font-size: 20px; }
+        .calendar-day {
+            min-height: 80px; /* 高さを抑える */
+            padding: 5px;
+            font-size: 11px;
+        }
+        .day-number {
+            font-size: 12px;
+            margin-bottom: 2px;
+        }
+        .event-item {
+            padding: 2px 4px;
+            font-size: 9px;
+        }
+        .day-total {
+            font-size: 10px;
+        }
+        .summary {
+            grid-template-columns: 1fr; /* 1列にする */
+        }
+        .summary-value {
+            font-size: 24px;
+        }
+        .nav-btn {
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+    }
+    /* ここまで修正 (追加) */
   </style>
 </head>
 <body>
@@ -356,10 +395,12 @@
       // 次月の日付セルを生成 (カレンダーグリッドを常に6週分表示するため)
       const totalCells = firstDayOfWeek + daysInMonth; // 当月と前月の表示済みセル数
       const remainingCells = 42 - totalCells; // 6週 (42日) から表示済みセルを引く
-      for (let day = 1; day <= remainingCells; day++) {
+      for (let i = 0; i < remainingCells; i++) {
+        const day = i + 1; // 次月の日付は1から開始
         const cell = createDayCell(day, true, false); // isOtherMonth=true
         grid.appendChild(cell);
       }
+
 
       // 月名表示を更新
       document.getElementById("current-month").textContent = 

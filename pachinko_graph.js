@@ -228,6 +228,14 @@ function renderChart() {
                 minRotation: 0, // ラベルを回転させない
                 font: {
                     size: currentType === 'machine' ? 10 : 12 // 機種名が多い場合は少し小さく
+                },
+                // 日付形式のラベルを 'MM-DD' に変換
+                callback: function(value, index, ticks) {
+                    if (currentType === 'daily') {
+                        // valueは'YYYY-MM-DD'形式と仮定
+                        return labels[index].substring(5); // 'MM-DD'部分を抽出
+                    }
+                    return labels[index];
                 }
             }
         }
