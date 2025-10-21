@@ -140,7 +140,6 @@
     .calendar-day {
       background: white;
       padding: 8px; /* パディングを少し減らす */
-      /* min-height: 120px; */ /* 高さの固定を解除 */
       position: relative;
       cursor: pointer;
       transition: all 0.3s;
@@ -152,7 +151,12 @@
     }
 
     /* 日付セルホバー時のスタイル */
-    .calendar-day:hover { background: #f8f9fa; }
+    .calendar-day:hover:not(.other-month) { 
+        background: #f8f9fa; 
+    }
+    .calendar-day.other-month:hover {
+        cursor: default; /* 他の月の日付はカーソルを変えない */
+    }
 
     /* 他の月の日のスタイル */
     .calendar-day.other-month {
@@ -177,8 +181,6 @@
       flex-grow: 1; /* 残りの高さを埋める */
       overflow: hidden; /* はみ出した内容を隠す */
       width: 100%; /* 親要素の幅いっぱいに広げる */
-      /* display: flex;
-      flex-direction: column; */ /* イベントを縦に並べる */
       padding-bottom: 5px; /* 合計収支との間に少しスペース */
     }
 
@@ -253,6 +255,143 @@
       opacity: 0.9;
     }
     
+    /* === ポップアップ（モーダル）のスタイル === */
+    .popup-overlay {
+      display: none; /* 初期状態では非表示 */
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .popup-overlay.is-visible {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .popup-content {
+      background: white;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      width: 90%;
+      max-width: 400px;
+      max-height: 80vh; /* 画面の80%まで */
+      overflow-y: auto; /* 内容が多ければスクロール */
+      position: relative;
+      transform: translateY(20px);
+      transition: transform 0.3s ease;
+    }
+
+    .popup-overlay.is-visible .popup-content {
+        transform: translateY(0);
+    }
+
+    .popup-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+    }
+
+    .popup-header h3 {
+        font-size: 20px;
+        color: #667eea;
+        margin: 0;
+    }
+
+    .popup-close-btn {
+        background: none;
+        border: none;
+        font-size: 28px;
+        color: #999;
+        cursor: pointer;
+        line-height: 1;
+        transition: color 0.2s;
+    }
+
+    .popup-close-btn:hover {
+        color: #333;
+    }
+
+    .popup-events-list {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 15px 0;
+    }
+
+    .popup-events-list li {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px dashed #f0f0f0;
+        font-size: 14px;
+    }
+    .popup-events-list li:last-child {
+        border-bottom: none;
+    }
+
+    .popup-event-info {
+        flex-grow: 1;
+        text-align: left;
+        color: #333;
+    }
+
+    .popup-event-machine {
+        font-weight: 600;
+        display: block;
+    }
+
+    .popup-event-genre {
+        font-size: 12px;
+        color: #777;
+    }
+
+    .popup-event-diff {
+        font-weight: 700;
+        font-size: 15px;
+        min-width: 90px;
+        text-align: right;
+    }
+    .popup-event-diff.positive {
+        color: #2ecc71;
+    }
+    .popup-event-diff.negative {
+        color: #e74c3c;
+    }
+
+    .popup-total-diff {
+        font-size: 18px;
+        font-weight: 700;
+        text-align: right;
+        padding-top: 10px;
+        border-top: 1px solid #eee;
+    }
+    .popup-total-diff.positive {
+        color: #28a745;
+    }
+    .popup-total-diff.negative {
+        color: #dc3545;
+    }
+    .popup-no-events {
+        text-align: center;
+        color: #777;
+        padding: 20px;
+    }
+
+
     /* === スマートフォンでの表示調整 (768px以下) === */
     @media (max-width: 768px) {
         body { padding: 10px; }
@@ -276,7 +415,6 @@
         }
         /* 各日付セルのサイズ、パディング、フォントサイズを調整 */
         .calendar-day {
-            /* min-height: 80px; */ /* 高さを抑える */ /* min-heightを解除 */
             padding: 3px; /* 内側の余白をさらに減らす */
             font-size: 10px; /* 全体的なフォントサイズを小さく */
         }
@@ -313,6 +451,29 @@
         /* サマリーの値を小さく */
         .summary-value {
             font-size: 24px; 
+        }
+
+        /* ポップアップの調整 */
+        .popup-content {
+            padding: 15px;
+            max-width: 95%;
+        }
+        .popup-header h3 {
+            font-size: 18px;
+        }
+        .popup-close-btn {
+            font-size: 24px;
+        }
+        .popup-events-list li {
+            padding: 8px 0;
+            font-size: 13px;
+        }
+        .popup-event-diff {
+            font-size: 14px;
+            min-width: 80px;
+        }
+        .popup-total-diff {
+            font-size: 16px;
         }
     }
   </style>
@@ -366,10 +527,33 @@
     </div>
   </div>
 
+  <!-- ポップアップ（モーダル）のHTML構造 -->
+  <div id="event-popup-overlay" class="popup-overlay">
+    <div class="popup-content">
+      <div class="popup-header">
+        <h3 id="popup-date-title"></h3>
+        <button class="popup-close-btn" id="popup-close-btn">&times;</button>
+      </div>
+      <ul id="popup-events-list" class="popup-events-list">
+        <!-- イベントはここに動的に挿入されます -->
+      </ul>
+      <p id="popup-no-events" class="popup-no-events" style="display: none;">この日の収支はありません。</p>
+      <div id="popup-total-diff" class="popup-total-diff"></div>
+    </div>
+  </div>
+
 <script>
     // 現在表示している年と月 (0-indexed: 0が1月)
     let currentYear = new Date().getFullYear();
     let currentMonth = new Date().getMonth();
+
+    // ポップアップ要素の取得
+    const popupOverlay = document.getElementById('event-popup-overlay');
+    const popupCloseBtn = document.getElementById('popup-close-btn');
+    const popupDateTitle = document.getElementById('popup-date-title');
+    const popupEventsList = document.getElementById('popup-events-list');
+    const popupNoEvents = document.getElementById('popup-no-events');
+    const popupTotalDiff = document.getElementById('popup-total-diff');
 
     /**
      * ローカルストレージから履歴データを取得する関数
@@ -422,7 +606,7 @@
       // 前月の日付セルを生成
       for (let i = firstDayOfWeek - 1; i >= 0; i--) {
         const day = daysInPrevMonth - i;
-        const cell = createDayCell(day, true, false); // isOtherMonth=true
+        const cell = createDayCell(day, true, false, null); // 他の月のセルにはイベントは設定しない
         grid.appendChild(cell);
       }
 
@@ -431,14 +615,11 @@
         const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const isToday = isCurrentMonth && day === todayDate;
         const events = eventsByDate[dateStr] || [];
-        const cell = createDayCell(day, false, isToday, events); // isOtherMonth=false
+        const cell = createDayCell(day, false, isToday, events, dateStr); // dateStrを渡す
         grid.appendChild(cell);
       }
 
       // 次月の日付セルを生成 (カレンダーグリッドを常に6週分表示するため)
-      // `grid-template-columns: repeat(7, 1fr);` と `gap: 1px;` でレイアウトしているため、
-      // flex-wrap: wrap; で自動改行するのではなく、グリッドのマス目を埋めるアプローチの方が適切です。
-      // 最大で6週分 (6 * 7 = 42マス) を表示するため、現在の月の日数と先月の余白を引いた残りを次月で埋めます。
       const totalDisplayCells = firstDayOfWeek + daysInMonth;
       let cellsToFill = 0;
       if (totalDisplayCells <= 35) { // 5週分で足りる場合、6週目まで埋める
@@ -449,7 +630,7 @@
 
       for (let i = 0; i < cellsToFill; i++) {
         const day = i + 1; // 次月の日付は1から開始
-        const cell = createDayCell(day, true, false); // isOtherMonth=true
+        const cell = createDayCell(day, true, false, null); // 他の月のセルにはイベントは設定しない
         grid.appendChild(cell);
       }
 
@@ -467,9 +648,10 @@
      * @param {boolean} isOtherMonth - 他の月の日付かどうか
      * @param {boolean} isToday - 今日の日付かどうか
      * @param {Array<Object>} events - その日の収支イベントの配列
+     * @param {string} dateStr - その日の日付文字列 (YYYY-MM-DD)
      * @returns {HTMLElement} 作成された日付セル要素
      */
-    function createDayCell(day, isOtherMonth, isToday, events = []) {
+    function createDayCell(day, isOtherMonth, isToday, events = [], dateStr = null) {
       const cell = document.createElement("div");
       cell.className = "calendar-day";
       if (isOtherMonth) cell.classList.add("other-month");
@@ -480,44 +662,38 @@
       dayNumber.textContent = day;
       cell.appendChild(dayNumber);
 
-      // 他の月の日でなく、イベントがある場合
-      if (!isOtherMonth && events.length > 0) {
-        const eventsDiv = document.createElement("div");
-        eventsDiv.className = "day-events";
-
-        let totalDiff = 0;
-        let tooltipText = ''; // ツールチップ用の詳細テキスト
-
-        events.forEach(event => {
-          totalDiff += event.diff;
-          const genreIcon = event.genre === 'pachinko' ? '🎯' : '🎰';
-          
-          // 機種名を省略して表示 (6文字より長い場合は5文字 + "…")
-          // 省略はせず、セル内で overflow: hidden; text-overflow: ellipsis; に任せる
-          const machineName = event.machine;
-          // const displayName = machineName.length > 6 ? machineName.substring(0, 5) + '…' : machineName;
-          
-          const eventItem = document.createElement("div");
-          eventItem.className = `event-item ${event.diff >= 0 ? 'event-positive' : 'event-negative'}`;
-          eventItem.textContent = `${genreIcon} ${machineName}`; // 省略せずに表示
-          eventsDiv.appendChild(eventItem);
-
-          // ツールチップに表示する詳細情報を作成
-          const diffText = `${event.diff >= 0 ? '+' : ''}${event.diff.toLocaleString()}円`;
-          tooltipText += `${genreIcon} ${machineName}\n  収支: ${diffText}\n`;
+      // 他の月の日でなく、イベントがある場合、またはクリック可能にする場合
+      if (!isOtherMonth) {
+        // クリックイベントリスナーを追加
+        cell.addEventListener('click', () => {
+          showEventPopup(dateStr);
         });
 
-        // セルにtitle属性を設定してツールチップを実装
-        cell.title = tooltipText.trim();
+        if (events.length > 0) {
+            const eventsDiv = document.createElement("div");
+            eventsDiv.className = "day-events";
 
-        // 日ごとの合計収支を表示
-        const totalDiv = document.createElement("div");
-        totalDiv.className = "day-total";
-        totalDiv.style.color = totalDiff >= 0 ? '#2ecc71' : '#e74c3c'; // プラスは緑、マイナスは赤
-        totalDiv.textContent = `${totalDiff >= 0 ? '+' : ''}${totalDiff.toLocaleString()}円`;
-        
-        cell.appendChild(eventsDiv); // イベントリストを追加
-        cell.appendChild(totalDiv); // 合計収支を追加
+            let totalDiff = 0;
+            events.forEach(event => {
+                totalDiff += event.diff;
+                const genreIcon = event.genre === 'pachinko' ? '🎯' : '🎰';
+                const machineName = event.machine;
+                
+                const eventItem = document.createElement("div");
+                eventItem.className = `event-item ${event.diff >= 0 ? 'event-positive' : 'event-negative'}`;
+                eventItem.textContent = `${genreIcon} ${machineName}`;
+                eventsDiv.appendChild(eventItem);
+            });
+
+            // 日ごとの合計収支を表示
+            const totalDiv = document.createElement("div");
+            totalDiv.className = "day-total";
+            totalDiv.style.color = totalDiff >= 0 ? '#2ecc71' : '#e74c3c'; // プラスは緑、マイナスは赤
+            totalDiv.textContent = `${totalDiff >= 0 ? '+' : ''}${totalDiff.toLocaleString()}円`;
+            
+            cell.appendChild(eventsDiv); // イベントリストを追加
+            cell.appendChild(totalDiv); // 合計収支を追加
+        }
       }
 
       return cell;
@@ -556,6 +732,79 @@
         ? 'linear-gradient(135deg, #28a745 0%, #218838 100%)' // プラスの場合は緑系
         : 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)'; // マイナスの場合は赤系
     }
+
+    /**
+     * 指定された日付のイベントをポップアップで表示する関数
+     * @param {string} dateStr - 表示する日付文字列 (YYYY-MM-DD)
+     */
+    function showEventPopup(dateStr) {
+        const eventsByDate = {};
+        getHistory().forEach(item => {
+            const date = item.date;
+            if (!eventsByDate[date]) {
+                eventsByDate[date] = [];
+            }
+            eventsByDate[date].push(item);
+        });
+
+        const events = eventsByDate[dateStr] || [];
+
+        popupDateTitle.textContent = `${new Date(dateStr).getMonth() + 1}月${new Date(dateStr).getDate()}日の収支`;
+        popupEventsList.innerHTML = ''; // リストをクリア
+        popupNoEvents.style.display = 'none';
+        popupTotalDiff.style.display = 'none';
+
+        if (events.length === 0) {
+            popupNoEvents.style.display = 'block';
+            popupTotalDiff.textContent = '合計: ¥0';
+            popupTotalDiff.classList.remove('positive', 'negative');
+        } else {
+            let totalDiff = 0;
+            events.forEach(event => {
+                totalDiff += event.diff;
+                const genreIcon = event.genre === 'pachinko' ? '🎯' : '🎰';
+                const listItem = document.createElement('li');
+                const diffClass = event.diff >= 0 ? 'positive' : 'negative';
+                const diffText = `${event.diff >= 0 ? '+' : ''}${event.diff.toLocaleString()}円`;
+
+                listItem.innerHTML = `
+                    <div class="popup-event-info">
+                        <span class="popup-event-machine">${genreIcon} ${event.machine}</span>
+                        <span class="popup-event-genre">${event.genre === 'pachinko' ? 'パチンコ' : 'パチスロ'}</span>
+                    </div>
+                    <span class="popup-event-diff ${diffClass}">${diffText}</span>
+                `;
+                popupEventsList.appendChild(listItem);
+            });
+
+            // 合計収支を表示
+            popupTotalDiff.textContent = `合計: ${totalDiff >= 0 ? '+' : ''}${totalDiff.toLocaleString()}円`;
+            popupTotalDiff.classList.remove('positive', 'negative'); // 一度両方削除
+            popupTotalDiff.classList.add(totalDiff >= 0 ? 'positive' : 'negative');
+            popupTotalDiff.style.display = 'block';
+        }
+
+        popupOverlay.classList.add('is-visible');
+        document.body.style.overflow = 'hidden'; // 背景のスクロールを無効化
+    }
+
+    /**
+     * ポップアップを閉じる関数
+     */
+    function hideEventPopup() {
+        popupOverlay.classList.remove('is-visible');
+        document.body.style.overflow = ''; // 背景のスクロールを有効化
+    }
+
+    // ポップアップの閉じるボタンにイベントリスナーを設定
+    popupCloseBtn.addEventListener('click', hideEventPopup);
+    // ポップアップのオーバーレイ（背景部分）をクリックしたときに閉じる
+    popupOverlay.addEventListener('click', (e) => {
+        if (e.target === popupOverlay) { // ポップアップコンテンツ自体ではなく背景がクリックされた場合
+            hideEventPopup();
+        }
+    });
+
 
     /**
      * 前月へ移動する関数
