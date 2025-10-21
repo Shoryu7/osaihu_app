@@ -234,44 +234,64 @@
       opacity: 0.9;
     }
     
-    /* ここから修正 (追加) */
+    /* === スマートフォンでの表示調整 (768px以下) === */
     @media (max-width: 768px) {
         body { padding: 10px; }
         .content { padding: 15px; }
+        
+        /* カレンダーヘッダーを縦並びに変更し、間隔を調整 */
         .calendar-header {
             flex-direction: column;
             gap: 15px;
             padding: 15px;
         }
-        .current-month { font-size: 20px; }
-        .calendar-day {
-            min-height: 80px; /* 高さを抑える */
-            padding: 5px;
-            font-size: 11px;
-        }
-        .day-number {
-            font-size: 12px;
-            margin-bottom: 2px;
-        }
-        .event-item {
-            padding: 2px 4px;
-            font-size: 9px;
-        }
-        .day-total {
-            font-size: 10px;
-        }
-        .summary {
-            grid-template-columns: 1fr; /* 1列にする */
-        }
-        .summary-value {
-            font-size: 24px;
-        }
+        .current-month { font-size: 20px; } /* 月表示の文字サイズを小さく */
         .nav-btn {
             padding: 8px 16px;
             font-size: 14px;
         }
+
+        /* カレンダーグリッドのセル間隔を狭める */
+        .calendar-grid {
+            gap: 0; /* セル間の隙間をなくすか、非常に小さくする */
+        }
+        /* 各日付セルのサイズ、パディング、フォントサイズを調整 */
+        .calendar-day {
+            min-height: 80px; /* 高さを抑える */
+            padding: 5px; /* 内側の余白を減らす */
+            font-size: 11px; /* 全体的なフォントサイズを小さく */
+        }
+        /* 曜日ヘッダーのパディングとフォントサイズも調整 */
+        .calendar-day-header {
+            padding: 10px 5px; 
+            font-size: 12px;
+        }
+        /* 日付番号を小さく */
+        .day-number {
+            font-size: 12px; 
+            margin-bottom: 2px;
+        }
+        /* イベントアイテムのフォントサイズ、パディング、マージンを調整 */
+        .event-item {
+            padding: 2px 4px;
+            font-size: 9px; 
+            margin: 1px 0; 
+        }
+        /* 合計収支のフォントサイズとパディングを調整 */
+        .day-total {
+            font-size: 10px; 
+            padding-top: 2px;
+        }
+        
+        /* サマリーボックスを1列にする */
+        .summary {
+            grid-template-columns: 1fr; 
+        }
+        /* サマリーの値を小さく */
+        .summary-value {
+            font-size: 24px; 
+        }
     }
-    /* ここまで修正 (追加) */
   </style>
 </head>
 <body>
