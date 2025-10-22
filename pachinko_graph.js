@@ -232,8 +232,11 @@ function renderChart() {
                 // 日付形式のラベルを 'MM-DD' に変換
                 callback: function(value, index, ticks) {
                     if (currentType === 'daily') {
-                        // valueは'YYYY-MM-DD'形式と仮定
-                        return labels[index].substring(5); // 'MM-DD'部分を抽出
+                        // labels[index] は 'YYYY-MM-DD' 形式
+                        const dateParts = labels[index].split('-');
+                        const month = parseInt(dateParts[1], 10); // 月から先頭のゼロを除去
+                        const day = parseInt(dateParts[2], 10);   // 日から先頭のゼロを除去
+                        return `${month}/${day}`; // 'M/D' 形式で返す
                     }
                     return labels[index];
                 }
